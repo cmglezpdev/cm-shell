@@ -1,2 +1,2 @@
 dev:
-	gcc -o shell main.c && ./shell
+	gcc main.c builtin.c parser.c -o shell && ./shell
