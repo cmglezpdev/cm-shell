@@ -10,6 +10,25 @@
 #include "builtin.h"
 
 
+char *sub_str(char *line, int init, int end) {
+    char *new_line = (char *) malloc(end - init + 1);
+
+    int i;
+    for (i = 0; i < end - init + 1; i++) {
+        new_line[i] = line[i + init];
+    }
+    new_line[i] = 0;
+
+    return new_line;
+}
+
+char *delete_comment(char *line) {
+    int k = 0;
+    for(; k < strlen(line) && line[k] != '#'; k ++);
+    if( k == strlen(line) ) return line;
+    return sub_str(line, 0, k - 1);
+}
+
 char *cmsh_read_line( void ) {
     char *line = NULL;
     size_t buffsize = 0;
@@ -23,9 +42,8 @@ char *cmsh_read_line( void ) {
         }
     }
 
-    return line;
+    return  line;
 }
-
 
 
 char **cmsh_split_line(char * line) {
@@ -38,9 +56,12 @@ char **cmsh_split_line(char * line) {
         exit(EXIT_FAILURE);
     }
 
+    line = delete_comment(line);
+    
     token = strtok(line, CMSH_TOK_DELIM);
     while(token != NULL) {
         tokens[position ++] = token;
+
         if( position >= buffsize ) {
             buffsize += CMSH_TOK_BUFF_SIZE;
             tokens = realloc(tokens, buffsize * sizeof(char *));
@@ -54,6 +75,8 @@ char **cmsh_split_line(char * line) {
         token = strtok(NULL, CMSH_TOK_DELIM);
     }
 
+
+    free(token);
     tokens[position] = NULL;
     return tokens;
 }
