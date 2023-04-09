@@ -97,21 +97,27 @@ int cmsh_launch(char **args, char* input, char* output) {
     pid_t pid, wpid;
     int status;
 
+    int fd[2] = {-1, -1};
+    if( input != NULL ) fd[0] = redirect_in(input);
+    if( output != NULL ) fd[1] = redirect_out(output);
+
     pid = fork();
     if(pid == 0) {
+        if( fd[0] != -1 ) {
+            args = add_new_args_from_file(args[0], input);
+            close(fd[0]);
+        }
 
-        int fd = -1;
-        if( output != NULL ) {
-            fd = redirect_out(output);
-            dup2(fd, STDOUT_FILENO);
-            close(fd);
+        if( fd[1] != -1 ) {
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[1]);
         }
 
         // Child process
         if( execvp(args[0], args) == -1 ) {
             perror("cmsh: command error\n");
         }
-        if( fd != -1 ) dup2(STDOUT_FILENO, fd);
+        if( fd[1] != -1 ) dup2(STDIN_FILENO, fd[1]);
         exit(EXIT_FAILURE);
 
     } else if (pid < 0) {
@@ -186,9 +192,41 @@ int cmsh_commands_process(char **tokens) {
             int status = cmsh_execute(command, NULL, tokens[t + 1]);
             free(command);
             if(status == -1) return -1;
+        } else
+        if( strcmp(tokens[t], "<") == 0 ) {
+            if( tokens[t + 1] == NULL ) {
+                return -1;
+            }
+            int status = cmsh_execute(command, tokens[t + 1], NULL);
+            free(command);
+            if( status == -1 ) return -1;
         }
+
+
         t += 2;
     }
 
     return 1;
+}
+
+
+char** add_new_args_from_file(char* command, char* file) {
+    int buffsize = CMSH_TOK_BUFF_SIZE;
+    char** doc = cmsh_read_file(file);
+    char** tokens = cmsh_split_lines(doc);
+    char** args = malloc(buffsize * sizeof(char*));
+    int size;
+
+    args[0] = command;
+    for(size = 1; tokens[size - 1] != NULL; size ++) {
+        if( size >= buffsize ) {
+            buffsize *= 2;
+            args = realloc(args, buffsize * sizeof(char*));
+        }
+        args[size] = malloc(strlen(tokens[size - 1]) * sizeof(char));
+        strcpy(args[size], tokens[size - 1]);
+    }
+    args[size] = NULL;
+    free(doc); free(tokens);
+    return args;
 }

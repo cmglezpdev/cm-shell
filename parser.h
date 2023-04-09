@@ -18,3 +18,7 @@ char *delete_comment(char *line);
 char *cmsh_read_line( void );
 
 char **cmsh_split_line(char * line);
+
+char** cmsh_read_file( char* file );
+
+char** cmsh_split_lines(char** lines);
