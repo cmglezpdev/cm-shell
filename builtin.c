@@ -185,25 +185,29 @@ int cmsh_commands_process(char **tokens) {
             continue;
         }
 
-        if( strcmp(tokens[t], ">") == 0 ) {
+        char* input = NULL;
+        char* output = NULL;
+
+        if( tokens[t] != NULL && strcmp(tokens[t], "<") == 0 ) {
             if( tokens[t + 1] == NULL ) {
                 return -1;
             }
-            int status = cmsh_execute(command, NULL, tokens[t + 1]);
-            free(command);
-            if(status == -1) return -1;
-        } else
-        if( strcmp(tokens[t], "<") == 0 ) {
+            input = tokens[t + 1];
+            t += 2;
+        }
+        if( tokens[t] != NULL && strcmp(tokens[t], ">") == 0 ) {
             if( tokens[t + 1] == NULL ) {
                 return -1;
             }
-            int status = cmsh_execute(command, tokens[t + 1], NULL);
-            free(command);
-            if( status == -1 ) return -1;
+            output = tokens[t + 1];
+            t += 2;
         }
 
-
-        t += 2;
+        int status = cmsh_execute(command, input, output);
+        free(command);
+//        if( input != NULL ) free(input);
+//        if( output != NULL ) free(output);
+        if(status == -1) return -1;
     }
 
     return 1;
