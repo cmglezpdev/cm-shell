@@ -36,7 +36,7 @@ void cmsh_loop( void ) {
         head_shell(pw -> pw_name);
         line = cmsh_read_line();
         args = cmsh_split_line(line);
-        status = cmsh_execute(args);
+        status = cmsh_commands_process(args);
     } while(status);
     
     free(line);
