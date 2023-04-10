@@ -7,15 +7,9 @@
 #include<pwd.h>
 #include<fcntl.h>
 
+#include "utils.h"
 #include "parser.h"
 #include "builtin.h"
-
-void print_command(char** args) {
-    printf("COMMAND \n");
-    for(int i = 0; args[i] != NULL; i ++)
-        printf("%s ", args[i]);
-    printf("\n");
-}
 
 
 // List builtin commands, followed by their corresponding functions
@@ -30,31 +24,6 @@ int (*builtin_func[]) (char **) = {
     &cmsh_help, 
     &cmsh_exit
 };
-
-
-int redirect_out(char *fileName) {
-    char *end_ptr = 0;
-
-    int fd = (int) strtol(fileName, &end_ptr, 10);
-
-    if (*(end_ptr + 1) != '\0') {
-        fd = open(fileName, O_WRONLY | O_TRUNC | O_CREAT, 0600);
-    }
-
-    return fd;
-}
-
-int redirect_in(char *fileName) {
-    char *end_ptr = 0;
-
-    int fd = (int) strtol(fileName, &end_ptr, 10);
-
-    if (*(end_ptr + 1) != '\0') {
-        fd = open(fileName, O_RDONLY);
-    }
-
-    return fd;
-}
 
 
 // Builtin functions implementation
@@ -90,147 +59,4 @@ int cmsh_exit(char **args) {
 
 int cmsh_num_builtins() {
     return sizeof(builtin_str) / sizeof(char *);
-}
-
-
-int cmsh_launch(char **args, char* input, char* output) {
-    pid_t pid, wpid;
-    int status;
-
-    int fd[2] = {-1, -1};
-    if( input != NULL ) fd[0] = redirect_in(input);
-    if( output != NULL ) fd[1] = redirect_out(output);
-
-    pid = fork();
-    if(pid == 0) {
-        if( fd[0] != -1 ) {
-            args = add_new_args_from_file(args[0], input);
-            close(fd[0]);
-        }
-
-        if( fd[1] != -1 ) {
-            dup2(fd[1], STDOUT_FILENO);
-            close(fd[1]);
-        }
-
-        // Child process
-        if( execvp(args[0], args) == -1 ) {
-            perror("cmsh: command error\n");
-        }
-        if( fd[1] != -1 ) dup2(STDIN_FILENO, fd[1]);
-        exit(EXIT_FAILURE);
-
-    } else if (pid < 0) {
-        // Error forking
-        perror("cmsh: forking error\n");
-    } else {
-        // Parent Process
-        do {
-            wpid = waitpid(pid, &status, WUNTRACED);
-        }while(!WIFEXITED(status) && !WIFSIGNALED(status));
-    }
-
-    return 1;
-}
-
-
-int cmsh_execute(char **args, char* input, char* output) {
-    if( args[0] == NULL ) {
-        return 1;
-    }
-
-    for(int i = 0; i < cmsh_num_builtins(); i ++) {
-        if( strcmp(args[0], builtin_str[i]) == 0 )
-            return (*builtin_func[i])(args);
-    }
-
-    return cmsh_launch(args, input, output);
-}
-
-char* operators[] = {">", "<", ">>", "|"};
-int is_operator(char* token) {
-    for(int i = 0; i < 4; i ++) {
-        if( strcmp(token, operators[i]) == 0 ) return 1;
-    }
-    return 0;
-}
-
-void extract_command(char** tokens, int start, char** command, int *size) {
-    int i = 0, end = start;
-    for(; tokens[end] != NULL && is_operator(tokens[end]) == 0; end ++, i ++) {
-        command[i] = malloc(strlen(tokens[end]));
-        strcpy(command[i], tokens[end]);
-    }
-
-    *size = end - start;
-    command[*size] = NULL;
-}
-
-int cmsh_commands_process(char **tokens) {
-    if( tokens[0] == NULL ) {
-        return 1;
-    }
-
-    char** command;
-    int t = 0;
-    while( tokens[t] != NULL ) {
-        int count_args = 0;
-        command = malloc(100 * sizeof(char *));
-        extract_command(tokens, t, command, &count_args);
-        t += count_args;
-
-        if( tokens[t] == NULL ) {
-            return cmsh_execute(command, NULL, NULL);
-            free(command);
-            continue;
-        }
-
-        char* input = NULL;
-        char* output = NULL;
-
-        if( tokens[t] != NULL && strcmp(tokens[t], "<") == 0 ) {
-            if( tokens[t + 1] == NULL ) {
-                return -1;
-            }
-            input = tokens[t + 1];
-            t += 2;
-        }
-        if( tokens[t] != NULL && strcmp(tokens[t], ">") == 0 ) {
-            if( tokens[t + 1] == NULL ) {
-                return -1;
-            }
-            output = tokens[t + 1];
-            t += 2;
-        }
-
-        int status = cmsh_execute(command, input, output);
-        free(command);
-//        if( input != NULL ) free(input);
-//        if( output != NULL ) free(output);
-        if(status == -1) return -1;
-    }
-
-    return 1;
-}
-
-
-char** add_new_args_from_file(char* command, char* file) {
-    int buffsize = CMSH_TOK_BUFF_SIZE;
-    char** doc = cmsh_read_file(file);
-    char** tokens = cmsh_split_lines(doc);
-    char** args = malloc(buffsize * sizeof(char*));
-    int size;
-
-    args[0] = command;
-    for(size = 1; tokens[size - 1] != NULL; size ++) {
-        if( size >= buffsize ) {
-            buffsize *= 2;
-            args = realloc(args, buffsize * sizeof(char*));
-        }
-        args[size] = malloc(strlen(tokens[size - 1]) * sizeof(char));
-        strcpy(args[size], tokens[size - 1]);
-    }
-    args[size] = NULL;
-    free(doc); free(tokens);
-    return args;
 }
