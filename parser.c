@@ -5,7 +5,6 @@
 #include<sys/wait.h>
 #include<sys/types.h>
 #include<pwd.h>
-#include<fcntl.h>
 
 #include "utils.h"
 #include "parser.h"
@@ -68,15 +67,6 @@ char **cmsh_split_line(char* line) {
     free(token);
     tokens[position] = NULL;
     return tokens;
-}
-
-char* cmsh_read_file( char* file ) {
-    int fd = redirect_in(file);
-    char* doc = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
-    size_t size = read(fd, doc, CMSH_TOK_BUFF_SIZE);
-
-    close(fd);
-    return doc;
 }
 
 char** add_new_args_from_file(char* command, char* file) {

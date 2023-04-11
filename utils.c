@@ -5,9 +5,23 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<unistd.h>
 #include<fcntl.h>
 
 #include "utils.h"
+
+
+int redirect_in(char *fileName) {
+    char *end_ptr = 0;
+
+    int fd = (int) strtol(fileName, &end_ptr, 10);
+
+    if (*(end_ptr + 1) != '\0') {
+        fd = open(fileName, O_RDONLY);
+    }
+
+    return fd;
+}
 
 int redirect_out(char *fileName) {
     char *end_ptr = 0;
@@ -21,15 +35,15 @@ int redirect_out(char *fileName) {
     return fd;
 }
 
-int redirect_in(char *fileName) {
-    char *end_ptr = 0;
-
-    int fd = (int) strtol(fileName, &end_ptr, 10);
-
-    if (*(end_ptr + 1) != '\0') {
-        fd = open(fileName, O_RDONLY);
-    }
-
+int redirect_out_append(char* fileName) {
+	char* endptr = 0;
+	
+	int fd = (int)strtol(fileName,&endptr,10);
+	
+	if (*(endptr+1) != '\0'){
+		fd = open(fileName,O_WRONLY | O_APPEND | O_CREAT, 0600);
+	}
+	
     return fd;
 }
 
@@ -45,6 +59,40 @@ char *sub_str(char *line, int init, int end) {
     return new_line;
 }
 
+char* cmsh_read_file( char* file ) {
+    int fd = redirect_in(file);
+    char* doc = malloc(CMSH_MAX_BUFFSIZE * sizeof(char));
+    size_t size = read(fd, doc, CMSH_MAX_BUFFSIZE);
+
+    close(fd);
+    return doc;
+}
+
+int cmsh_write_file(char* file, char* content, int trunc) {
+
+    if( trunc == 1 ) {
+        int fd = redirect_out(file);
+        write(fd, content, strlen(content));
+        close(fd);
+        return 1;
+    }
+
+    char* file_content = cmsh_read_file(file);
+    file_content = realloc(file_content, strlen(file_content) + strlen(content) + 1);
+    if( file_content == NULL ) {
+        perror("cmsh: Allocation error");
+        exit(EXIT_FAILURE);
+        return -1;
+    }
+
+    strcat(file_content, content);
+    int fd = redirect_out(file);
+    write(fd, file_content, strlen(file_content));
+    close(fd);
+    free(file_content);
+
+    return 1;
+}
 
 
 // TEMPORALS
