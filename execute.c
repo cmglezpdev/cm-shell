@@ -15,13 +15,15 @@
 #include "utils.h"
 #include "parser.h"
 
-int cmsh_launch(char **args, char* input, char* output) {
+int cmsh_launch(char **args, char* input, char* output, int append) {
     pid_t pid, wpid;
     int status;
 
     int fd[2] = {-1, -1};
-    if( input != NULL ) fd[0] = file_descriptor_in(input);
-    if( output != NULL ) fd[1] = file_descriptor_out(output);
+    if( input != NULL ) 
+        fd[0] = file_descriptor_in(input);
+    if( output != NULL ) 
+        fd[1] = append == 1 ? file_descriptor_out_append(output) : file_descriptor_out(output);
 
     pid = fork();
     if(pid == 0) {
@@ -38,9 +40,10 @@ int cmsh_launch(char **args, char* input, char* output) {
         // Child process
         if( execvp(args[0], args) == -1 ) {
             perror("cmsh: command error\n");
+            exit(EXIT_FAILURE);
         }
-        if( fd[1] != -1 ) dup2(STDIN_FILENO, fd[1]);
-        exit(EXIT_FAILURE);
+        if( fd[0] != -1 ) dup2(STDIN_FILENO, fd[0]);
+        if( fd[1] != -1 ) dup2(STDOUT_FILENO, fd[1]);
 
     } else if (pid < 0) {
         // Error forking
@@ -56,7 +59,7 @@ int cmsh_launch(char **args, char* input, char* output) {
 }
 
 
-int cmsh_execute(char **args, char* input, char* output) {
+int cmsh_execute(char **args, char* input, char* output, int append) {
     if( args[0] == NULL ) {
         return 1;
     }
@@ -66,7 +69,7 @@ int cmsh_execute(char **args, char* input, char* output) {
             return (*builtin_func[i])(args);
     }
 
-    return cmsh_launch(args, input, output);
+    return cmsh_launch(args, input, output, append);
 }
 
 char* operators[] = {">", "<", ">>", "|"};
@@ -102,7 +105,7 @@ int cmsh_commands_process(char **tokens) {
         t += count_args;
 
         if( tokens[t] == NULL ) {
-            return cmsh_execute(command, NULL, NULL);
+            return cmsh_execute(command, NULL, NULL, 0);
             free(command);
             continue;
         }
@@ -117,18 +120,18 @@ int cmsh_commands_process(char **tokens) {
             input = tokens[t + 1];
             t += 2;
         }
-        if( tokens[t] != NULL && strcmp(tokens[t], ">") == 0 ) {
+
+        if( tokens[t] != NULL && ( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) ) {
             if( tokens[t + 1] == NULL ) {
                 return -1;
             }
             output = tokens[t + 1];
             t += 2;
         }
+        int append = strcmp(tokens[t - 2], ">>") == 0 ? 1 : 0;
 
-        int status = cmsh_execute(command, input, output);
+        int status = cmsh_execute(command, input, output, append);
         free(command);
-//        if( input != NULL ) free(input);
-//        if( output != NULL ) free(output);
         if(status == -1) return -1;
     }
 
