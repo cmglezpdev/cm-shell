@@ -20,8 +20,8 @@ int cmsh_launch(char **args, char* input, char* output) {
     int status;
 
     int fd[2] = {-1, -1};
-    if( input != NULL ) fd[0] = redirect_in(input);
-    if( output != NULL ) fd[1] = redirect_out(output);
+    if( input != NULL ) fd[0] = file_descriptor_in(input);
+    if( output != NULL ) fd[1] = file_descriptor_out(output);
 
     pid = fork();
     if(pid == 0) {

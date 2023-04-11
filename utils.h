@@ -9,9 +9,9 @@
 #define CMSH_TOK_BUFF_SIZE 1024
 #define CMSH_TOK_DELIM " \t\r\n\a"
 
-int redirect_in(char *fileName);
-int redirect_out(char *fileName);
-int redirect_out_append(char* fileName);
+int file_descriptor_in(char *fileName);
+int file_descriptor_out(char *fileName);
+int file_descriptor_out_append(char* fileName);
 
 void print_tokens(char** tokens);
 
