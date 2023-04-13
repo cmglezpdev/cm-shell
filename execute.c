@@ -108,45 +108,41 @@ int cmsh_commands_process(char **tokens) {
         t += 2;
     }
 
-    // See if there is an output file
-    if( tokens[t] != NULL && ( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) ) {
-        if( tokens[t + 1] == NULL ) {
-            return -1;
+    while( tokens[t] != NULL ) {
+
+        // See if there is an output file
+        if( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) {
+            if( tokens[t + 1] == NULL ) {
+                return -1;
+            }
+            fd_output = strcmp(tokens[t], ">") == 0 
+                ? file_descriptor_out(tokens[t + 1]) 
+                : file_descriptor_out_append(tokens[t + 1]);
+            
+            t += 2;
+            break;
         }
-        fd_output = strcmp(tokens[t], ">") == 0 
-            ? file_descriptor_out(tokens[t + 1]) 
-            : file_descriptor_out_append(tokens[t + 1]);
-        
-        t += 2;
-    }
 
-    return cmsh_execute(command, fd_input, fd_output);
+        // Pipe
+        if( strcmp(tokens[t], "|") == 0 ) {
+            int pipefd[2];
+            pipe(pipefd);
 
-    // if( tokens[t] != NULL && strcmp(tokens[t], "|") == 0 ) {
+            int status = cmsh_execute(command, fd_input, pipefd[1]);
+            dup2(fd_input, pipefd[0]);
+            close(pipefd[0]); close(pipefd[1]);
+            t ++;
+        }
 
-    // }
+        // Get another command
+        free(command);
+        command = malloc(100 * sizeof(char*));
+        count_args = extract_command(tokens, t, command);
+        t += count_args;
+    }   
 
-
-
-
-    // while( tokens[t] != NULL ) {
-    //     command = malloc(100 * sizeof(char *));
-    //     int count_args = extract_command(tokens, t, command);
-    //     t += count_args;
-
-    //     if( tokens[t] == NULL ) {
-    //         return cmsh_execute(command, NULL, NULL, 0);
-    //         free(command);
-    //         continue;
-    //     }
-
-    //     char* input = NULL;
-    //     char* output = NULL;
-
-    //     int status = cmsh_execute(command, input, output, append);
-    //     free(command);
-    //     if(status == -1) return -1;
-    // }
-
-    return 1;
-}
+    int status = cmsh_execute(command, fd_input, fd_output);
+    close(fd_input); close(fd_output);
+    free(command);
+    return status;
+} 
