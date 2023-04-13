@@ -80,15 +80,15 @@ int is_operator(char* token) {
     return 0;
 }
 
-void extract_command(char** tokens, int start, char** command, int *size) {
+int extract_command(char** tokens, int start, char** command) {
     int i = 0, end = start;
     for(; tokens[end] != NULL && is_operator(tokens[end]) == 0; end ++, i ++) {
         command[i] = malloc(strlen(tokens[end]));
         strcpy(command[i], tokens[end]);
     }
 
-    *size = end - start;
-    command[*size] = NULL;
+    command[end - start] = NULL;
+    return end - start;
 }
 
 int cmsh_commands_process(char **tokens) {
@@ -99,9 +99,8 @@ int cmsh_commands_process(char **tokens) {
     char** command;
     int t = 0;
     while( tokens[t] != NULL ) {
-        int count_args = 0;
         command = malloc(100 * sizeof(char *));
-        extract_command(tokens, t, command, &count_args);
+        int count_args = extract_command(tokens, t, command);
         t += count_args;
 
         if( tokens[t] == NULL ) {

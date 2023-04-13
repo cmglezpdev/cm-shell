@@ -8,7 +8,7 @@
 #endif //PRACTIC_SHELL_EXECUTE_H
 
 
-void extract_command(char** tokens, int start, char** command, int *size);
+int extract_command(char** tokens, int start, char** command);
 
 int cmsh_commands_process(char **tokens);
 
