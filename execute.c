@@ -15,26 +15,23 @@
 #include "utils.h"
 #include "parser.h"
 
-int cmsh_launch(char **args, char* input, char* output, int append) {
+int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
     pid_t pid, wpid;
     int status;
 
-    int fd[2] = {-1, -1};
-    if( input != NULL ) 
-        fd[0] = file_descriptor_in(input);
-    if( output != NULL ) 
-        fd[1] = append == 1 ? file_descriptor_out_append(output) : file_descriptor_out(output);
-
     pid = fork();
     if(pid == 0) {
-        if( fd[0] != -1 ) {
-            args = add_new_args_from_file(args[0], input);
-            close(fd[0]);
+        if( fd_input != -1 ) {
+            dup2(fd_input, STDIN_FILENO);
+            // close(fd_input);
         }
 
-        if( fd[1] != -1 ) {
-            dup2(fd[1], STDOUT_FILENO);
-            close(fd[1]);
+        if( fd_output != -1 ) {
+            dup2(fd_output, STDOUT_FILENO);
+        }else 
+        if( pipes[1] != -1 ) {
+            dup2(pipes[1], STDOUT_FILENO);
+            close(pipes[0]);
         }
 
         // Child process
@@ -42,8 +39,8 @@ int cmsh_launch(char **args, char* input, char* output, int append) {
             perror("cmsh: command error\n");
             exit(EXIT_FAILURE);
         }
-        if( fd[0] != -1 ) dup2(STDIN_FILENO, fd[0]);
-        if( fd[1] != -1 ) dup2(STDOUT_FILENO, fd[1]);
+        // if( fd_input != -1 ) dup2(STDIN_FILENO, fd_input);
+        // if( fd_output != -1 ) dup2(STDOUT_FILENO, fd_output);
 
     } else if (pid < 0) {
         // Error forking
@@ -52,6 +49,7 @@ int cmsh_launch(char **args, char* input, char* output, int append) {
         // Parent Process
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
+            if( pipes[1] != -1 ) close(pipes[1]);
         }while(!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
@@ -59,7 +57,7 @@ int cmsh_launch(char **args, char* input, char* output, int append) {
 }
 
 
-int cmsh_execute(char **args, char* input, char* output, int append) {
+int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     if( args[0] == NULL ) {
         return 1;
     }
@@ -69,7 +67,7 @@ int cmsh_execute(char **args, char* input, char* output, int append) {
             return (*builtin_func[i])(args);
     }
 
-    return cmsh_launch(args, input, output, append);
+    return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
 char* operators[] = {">", "<", ">>", "|"};
@@ -80,15 +78,15 @@ int is_operator(char* token) {
     return 0;
 }
 
-void extract_command(char** tokens, int start, char** command, int *size) {
+int extract_command(char** tokens, int start, char** command) {
     int i = 0, end = start;
     for(; tokens[end] != NULL && is_operator(tokens[end]) == 0; end ++, i ++) {
         command[i] = malloc(strlen(tokens[end]));
         strcpy(command[i], tokens[end]);
     }
 
-    *size = end - start;
-    command[*size] = NULL;
+    command[end - start] = NULL;
+    return end - start;
 }
 
 int cmsh_commands_process(char **tokens) {
@@ -96,44 +94,62 @@ int cmsh_commands_process(char **tokens) {
         return 1;
     }
 
+    int t = 0, count_args;
+    int fd_input = -1, fd_output = -1;
     char** command;
-    int t = 0;
-    while( tokens[t] != NULL ) {
-        int count_args = 0;
-        command = malloc(100 * sizeof(char *));
-        extract_command(tokens, t, command, &count_args);
-        t += count_args;
+    
+    // Get the first command
+    command = malloc(100 * sizeof(char*));
+    count_args = extract_command(tokens, 0, command);
+    t += count_args;
 
-        if( tokens[t] == NULL ) {
-            return cmsh_execute(command, NULL, NULL, 0);
-            free(command);
-            continue;
+    // See if there is an input file
+    if( tokens[t] != NULL && strcmp(tokens[t], "<") == 0 ) {
+        if( tokens[t + 1] == NULL ) {
+            return -1;
         }
-
-        char* input = NULL;
-        char* output = NULL;
-
-        if( tokens[t] != NULL && strcmp(tokens[t], "<") == 0 ) {
-            if( tokens[t + 1] == NULL ) {
-                return -1;
-            }
-            input = tokens[t + 1];
-            t += 2;
-        }
-
-        if( tokens[t] != NULL && ( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) ) {
-            if( tokens[t + 1] == NULL ) {
-                return -1;
-            }
-            output = tokens[t + 1];
-            t += 2;
-        }
-        int append = strcmp(tokens[t - 2], ">>") == 0 ? 1 : 0;
-
-        int status = cmsh_execute(command, input, output, append);
-        free(command);
-        if(status == -1) return -1;
+        fd_input = file_descriptor_in(tokens[t + 1]);
+        t += 2;
     }
 
-    return 1;
-}
+    while( tokens[t] != NULL ) {
+
+        // See if there is an output file
+        if( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) {
+            if( tokens[t + 1] == NULL ) {
+                return -1;
+            }
+            fd_output = strcmp(tokens[t], ">") == 0 
+                ? file_descriptor_out(tokens[t + 1]) 
+                : file_descriptor_out_append(tokens[t + 1]);
+            
+            t += 2;
+            break;
+        }
+
+        // Pipe
+        if( strcmp(tokens[t], "|") == 0 ) {
+            int pipefd[2];
+            pipe(pipefd);
+
+            int status = cmsh_execute(command, fd_input, -1, pipefd);
+            // close(pipefd[1]);
+            fd_input = pipefd[0]; // save to the next command
+            // dup2(fd_input, pipefd[0]);
+            // close(pipefd[0]); close(pipefd[1]);
+            t ++;
+        }
+
+        // Get another command
+        free(command);
+        command = malloc(100 * sizeof(char*));
+        count_args = extract_command(tokens, t, command);
+        t += count_args;
+    }   
+
+    int temp[2] = {-1, -1};
+    int status = cmsh_execute(command, fd_input, fd_output, temp);
+    close(fd_input); close(fd_output);
+    free(command);
+    return status;
+} 
