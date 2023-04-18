@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "parser.h"
 
-int cmsh_launch(char **args, int fd_input, int fd_output) {
+int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
     pid_t pid, wpid;
     int status;
 
@@ -23,12 +23,15 @@ int cmsh_launch(char **args, int fd_input, int fd_output) {
     if(pid == 0) {
         if( fd_input != -1 ) {
             dup2(fd_input, STDIN_FILENO);
-            close(fd_input);
+            // close(fd_input);
         }
 
         if( fd_output != -1 ) {
             dup2(fd_output, STDOUT_FILENO);
-            close(fd_output);
+        }else 
+        if( pipes[1] != -1 ) {
+            dup2(pipes[1], STDOUT_FILENO);
+            close(pipes[0]);
         }
 
         // Child process
@@ -36,8 +39,8 @@ int cmsh_launch(char **args, int fd_input, int fd_output) {
             perror("cmsh: command error\n");
             exit(EXIT_FAILURE);
         }
-        if( fd_input != -1 ) dup2(STDIN_FILENO, fd_input);
-        if( fd_output != -1 ) dup2(STDOUT_FILENO, fd_output);
+        // if( fd_input != -1 ) dup2(STDIN_FILENO, fd_input);
+        // if( fd_output != -1 ) dup2(STDOUT_FILENO, fd_output);
 
     } else if (pid < 0) {
         // Error forking
@@ -46,6 +49,7 @@ int cmsh_launch(char **args, int fd_input, int fd_output) {
         // Parent Process
         do {
             wpid = waitpid(pid, &status, WUNTRACED);
+            if( pipes[1] != -1 ) close(pipes[1]);
         }while(!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
@@ -53,7 +57,7 @@ int cmsh_launch(char **args, int fd_input, int fd_output) {
 }
 
 
-int cmsh_execute(char **args, int fd_in, int fd_out) {
+int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     if( args[0] == NULL ) {
         return 1;
     }
@@ -63,7 +67,7 @@ int cmsh_execute(char **args, int fd_in, int fd_out) {
             return (*builtin_func[i])(args);
     }
 
-    return cmsh_launch(args, fd_in, fd_out);
+    return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
 char* operators[] = {">", "<", ">>", "|"};
@@ -128,9 +132,11 @@ int cmsh_commands_process(char **tokens) {
             int pipefd[2];
             pipe(pipefd);
 
-            int status = cmsh_execute(command, fd_input, pipefd[1]);
-            dup2(fd_input, pipefd[0]);
-            close(pipefd[0]); close(pipefd[1]);
+            int status = cmsh_execute(command, fd_input, -1, pipefd);
+            // close(pipefd[1]);
+            fd_input = pipefd[0]; // save to the next command
+            // dup2(fd_input, pipefd[0]);
+            // close(pipefd[0]); close(pipefd[1]);
             t ++;
         }
 
@@ -141,7 +147,8 @@ int cmsh_commands_process(char **tokens) {
         t += count_args;
     }   
 
-    int status = cmsh_execute(command, fd_input, fd_output);
+    int temp[2] = {-1, -1};
+    int status = cmsh_execute(command, fd_input, fd_output, temp);
     close(fd_input); close(fd_output);
     free(command);
     return status;
