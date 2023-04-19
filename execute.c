@@ -101,18 +101,25 @@ int cmsh_commands_process(char* line) {
     save = line[0] != ' ' ? 1 : 0;
     
     // see if it is the again command
-    if( strcmp(tokens[0], "again") == 0 && tokens[1] != NULL && tokens[2] != NULL ) {
-        char* line = get_again((int)strtol(tokens[1], NULL, 10));
+    if( strcmp(tokens[0], "again") == 0 ) {
+        if( tokens[1] == NULL ) {
+            perror("cmsh: The number of the command to execute again is required\n");
+            exit(EXIT_FAILURE);
+        }
+
+        int number = (int)strtol(tokens[1], NULL, 10);
+        line = get_again(number);
         tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
     }
     
     // save in the history
     if( save == 1 ) save_in_history(line);
+    // printf("HERE\n");
 
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
     char** command;
-    
+
     // Get the first command
     command = malloc(100 * sizeof(char*));
     count_args = extract_command(tokens, 0, command);
@@ -148,10 +155,7 @@ int cmsh_commands_process(char* line) {
             pipe(pipefd);
 
             int status = cmsh_execute(command, fd_input, -1, pipefd);
-            // close(pipefd[1]);
             fd_input = pipefd[0]; // save to the next command
-            // dup2(fd_input, pipefd[0]);
-            // close(pipefd[0]); close(pipefd[1]);
             t ++;
         }
 
@@ -165,6 +169,7 @@ int cmsh_commands_process(char* line) {
     int temp[2] = {-1, -1};
     int status = cmsh_execute(command, fd_input, fd_output, temp);
     close(fd_input); close(fd_output);
-    free(command);
+    // printf("HERE 2\n");
+    free(command); free(line); free(tokens);
     return status;
 } 
