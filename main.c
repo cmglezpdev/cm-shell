@@ -24,7 +24,6 @@ void head_shell(char *name) {
 
 void cmsh_loop( void ) {
     char *line;
-    char **args;
     int status;
 
     uid_t uid;
@@ -35,12 +34,10 @@ void cmsh_loop( void ) {
     do {
         head_shell(pw -> pw_name);
         line = cmsh_read_line();
-        args = cmsh_split_line(line);
-        status = cmsh_commands_process(args);
+        status = cmsh_commands_process(line);
     } while(status);
     
     free(line);
-    free(args);
 }
 
 
