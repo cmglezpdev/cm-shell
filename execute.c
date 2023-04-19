@@ -89,10 +89,25 @@ int extract_command(char** tokens, int start, char** command) {
     return end - start;
 }
 
-int cmsh_commands_process(char **tokens) {
+int cmsh_commands_process(char* line) {
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    int save = 0;
+
     if( tokens[0] == NULL ) {
         return 1;
     }
+
+    // see if i'll save the commnand
+    save = line[0] != ' ' ? 1 : 0;
+    
+    // see if it is the again command
+    if( strcmp(tokens[0], "again") == 0 && tokens[1] != NULL && tokens[2] != NULL ) {
+        char* line = get_again((int)strtol(tokens[1], NULL, 10));
+        tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    }
+    
+    // save in the history
+    if( save == 1 ) save_in_history(line);
 
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
