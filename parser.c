@@ -35,7 +35,10 @@ char *cmsh_read_line( void ) {
 }
 
 
-char **cmsh_split_line(char* line) {
+char **cmsh_split_line(const char* input) {
+    char * line = malloc(strlen(input));
+    strcpy(line, input);
+
     int buffsize = CMSH_TOK_BUFF_SIZE, position = 0;
     char **tokens = malloc(buffsize * sizeof(char *));
     char *token;
