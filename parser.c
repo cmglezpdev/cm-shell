@@ -44,12 +44,13 @@ char **cmsh_split_line(const char* input, char* delim) {
     char *token;
 
     if( !tokens ) {
-        fprintf(stderr, "cmsh: allocation error\n");
+        free(line);
+        perror("cmsh: allocation error\n");
         exit(EXIT_FAILURE);
     }
 
     line = delete_comment(line);
-    
+
     token = strtok(line, delim);
     while(token != NULL) {
         tokens[position ++] = token;
@@ -67,8 +68,9 @@ char **cmsh_split_line(const char* input, char* delim) {
         token = strtok(NULL, delim);
     }
 
-    free(token);
+    free(token); free(line);
     tokens[position] = NULL;
+    // printf("SPLIT\n");
     return tokens;
 }
 
