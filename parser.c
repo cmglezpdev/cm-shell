@@ -35,7 +35,7 @@ char *cmsh_read_line( void ) {
 }
 
 
-char **cmsh_split_line(const char* input) {
+char **cmsh_split_line(const char* input, char* delim) {
     char * line = malloc(strlen(input));
     strcpy(line, input);
 
@@ -50,7 +50,7 @@ char **cmsh_split_line(const char* input) {
 
     line = delete_comment(line);
     
-    token = strtok(line, CMSH_TOK_DELIM);
+    token = strtok(line, delim);
     while(token != NULL) {
         tokens[position ++] = token;
 
@@ -64,7 +64,7 @@ char **cmsh_split_line(const char* input) {
             }
         }
 
-        token = strtok(NULL, CMSH_TOK_DELIM);
+        token = strtok(NULL, delim);
     }
 
     free(token);
@@ -75,7 +75,7 @@ char **cmsh_split_line(const char* input) {
 char** add_new_args_from_file(char* command, char* file) {
     int buffsize = CMSH_TOK_BUFF_SIZE;
     char* doc = cmsh_read_file(file);
-    char** tokens = cmsh_split_line(doc);
+    char** tokens = cmsh_split_line(doc, CMSH_TOK_DELIM);
     char** args = malloc(buffsize * sizeof(char*));
     int size;
 
