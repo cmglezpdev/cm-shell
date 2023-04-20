@@ -4,7 +4,8 @@
 #endif
 
 // #define CMSH_HISTORY_FILE ".cmsh_history"
-#define CMSH_HISTORY_FILE "history.txt"
+#define CMSH_HISTORY_FILE ".cmsh_history"
+extern char* CMSH_HOME;
 
 // List builtin commands, followed by their corresponding functions
 extern char *builtin_str[2];
@@ -15,6 +16,7 @@ extern char *builtin_str_out[2];
 
 extern int (*builtin_func_out[2]) (char **);
 
+char* get_history_file_path();
 
 char** get_history();
 

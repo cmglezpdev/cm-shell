@@ -11,6 +11,7 @@
 #include "parser.h"
 #include "builtin.h"
 
+char* CMSH_HOME;
 
 // List builtin commands, followed by their corresponding functions
 char *builtin_str[] = { 
@@ -77,11 +78,12 @@ int cmsh_history(char** args) {
 
 
 char** get_history() {
-    int fd = open(CMSH_HISTORY_FILE, O_CREAT | O_RDONLY);
+    char* hpath = get_history_file_path();
+    char** commands = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
+    int fd = open(hpath, O_RDONLY | O_CREAT, 0600);
     char* doc = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
     read(fd, doc, CMSH_TOK_BUFF_SIZE);
 
-    char** commands = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
     char* line = NULL;
     int s = 0, k = 0, n = strlen(doc);
 
@@ -96,7 +98,7 @@ char** get_history() {
 
     commands[k] = NULL;
     if(line != NULL) free(line); 
-    free(doc); close(fd);
+    free(doc); free(hpath); close(fd);
     return commands;
 }
 
@@ -141,11 +143,12 @@ void save_in_history(char *line) {
     }
 
     strcat(history, line);
- 
-    int fd = open(CMSH_HISTORY_FILE, O_WRONLY | O_TRUNC);
+    
+    char* hpath = get_history_file_path();
+    int fd = open(hpath, O_WRONLY | O_TRUNC);
     write(fd, history, strlen(history));
 
-    free(history); free(commands);
+    free(history); free(commands); free(hpath);
     close(fd);
 }
 
@@ -158,4 +161,10 @@ int cmsh_num_builtins_out() {
     return sizeof(builtin_str_out) / sizeof(char *);
 }
 
-
+char* get_history_file_path() {
+    char *hpath = malloc((strlen(CMSH_HOME) + strlen(CMSH_HISTORY_FILE) + 1) * sizeof(char));
+    strcpy(hpath, CMSH_HOME);
+    strcat(hpath, "/");
+    strcat(hpath, CMSH_HISTORY_FILE);
+    return hpath;
+}
