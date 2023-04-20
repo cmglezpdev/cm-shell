@@ -103,11 +103,15 @@ int cmsh_commands_process(char* line) {
     if( is_empty_command(line) ) return 1;    
     line = delete_comment(line);
     line = remplace_command_again(line);
-    // printf("LINE: %s\n", line);
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
 
     // see if i'll save the commnand
-    int save = line[0] != ' ' ? 1 : 0;    
+    int save = line[0] != ' ' 
+        ? strcmp(tokens[0], "history") == 0
+        ? 2 : 1 : 0; 
+    // save in the history
+    if( save == 2 ) save_in_history(line);
+
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
     char** command;
@@ -161,7 +165,6 @@ int cmsh_commands_process(char* line) {
     int status = cmsh_execute(command, fd_input, fd_output, temp);
     close(fd_input); close(fd_output);
 
-    // save in the history
     if( save == 1 ) save_in_history(line);
 
     free(command); free(line); free(tokens);
