@@ -38,13 +38,15 @@ int (*builtin_func_out[]) (char **) = {
 // Builtin functions implementation
 int cmsh_cd(char **args) {
     if( args[1] == NULL ) {
-        fprintf(stderr, "cmsh: expected argument to \"cd\"\n");
+        perror("cmsh: expected argument to \"cd\"\n");
+        return EXIT_FAILURE;
     } else {
         if( chdir(args[1]) != 0 ) {
             perror("cmsh");
+            return EXIT_FAILURE;
         }
     }
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 int cmsh_help(char **args)
@@ -58,7 +60,7 @@ int cmsh_help(char **args)
     }
 
     printf("Use the man command for information on other programs.\n");
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 int cmsh_exit(char **args) {
@@ -72,8 +74,8 @@ int cmsh_history(char** args) {
     for(int i = 0; history[i] != NULL; i ++) {
         printf("%d: %s\n", i + 1, history[i]);
     }
-    free(history);
-    return 1;
+    if(history) free(history);
+    return EXIT_SUCCESS;
 }
 
 
@@ -105,7 +107,7 @@ char** get_history() {
 char* get_again(int number) {
     if( number < 1 || number > 10 ) {
         perror("cmsh: The command number should be between [1..10]\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     number --;
 
@@ -118,12 +120,6 @@ char* get_again(int number) {
             strcpy(again, commands[i]);
             break;
         }
-    }
-
-    if( again == NULL ) {
-        free(commands);
-        perror("cmsh: The command doesn't exist in the history\n");
-        exit(EXIT_FAILURE);
     }
 
     free(commands);

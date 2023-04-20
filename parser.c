@@ -24,10 +24,10 @@ char *cmsh_read_line( void ) {
 
     if( getline(&line, &buffsize, stdin) == -1 ) {
         if( feof(stdin) ) {
-            exit(EXIT_SUCCESS);
+            // exit(EXIT_SUCCESS);
         } else {
             perror("cmsh: getline\n");
-            exit(EXIT_FAILURE);
+            return NULL;
         }
     }
 
@@ -45,7 +45,7 @@ char **cmsh_split_line(const char* input, char* delim) {
     if( !tokens ) {
         free(line);
         perror("cmsh: allocation error\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     token = strtok(line, delim);
@@ -58,8 +58,8 @@ char **cmsh_split_line(const char* input, char* delim) {
             tokens = realloc(tokens, buffsize * sizeof(char *));
 
             if( !tokens ) {
-                fprintf(stderr, "cmsh: allocation error\n");
-                exit(EXIT_FAILURE);
+                perror("cmsh: allocation error\n");
+                return NULL;
             }
         }
 
@@ -102,11 +102,14 @@ char* remplace_command_again(char* line) {
     for(int t = 0; tokens[t] != NULL; t ++) {
         if( strcmp(tokens[t], "again") == 0 ) {
             if( tokens[t + 1] == NULL || !is_number(tokens[t + 1]) ) {
-                perror("cmsh: the again command needs a numberlike parameter\n");
-                exit(EXIT_FAILURE);
+                perror("cmsh: the again command needs a number like parameter\n");
+                return NULL;
             }
 
             char* history_command = get_again((int)strtol(tokens[++t], NULL, 10));
+            if( history_command == NULL )
+                return NULL;
+
             strcat(command, history_command);
             strcat(command, " ");
             continue;

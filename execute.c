@@ -25,9 +25,7 @@ int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
 
         if( fd_input != -1 ) {
             dup2(fd_input, STDIN_FILENO);
-            // close(fd_input);
         }
-
         if( fd_output != -1 ) {
             dup2(fd_output, STDOUT_FILENO);
         }else 
@@ -42,15 +40,11 @@ int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
                 exit((*builtin_func_out[i])(args));
             }
         }
-
+        
         // Linux internal command 
         if( execvp(args[0], args) == -1 ) {
             perror("cmsh: command error\n");
-            exit(EXIT_FAILURE);
         }
-        // if( fd_input != -1 ) dup2(STDIN_FILENO, fd_input);
-        // if( fd_output != -1 ) dup2(STDOUT_FILENO, fd_output);
-
     } else if (pid < 0) {
         // Error forking
         perror("cmsh: forking error\n");
@@ -62,13 +56,13 @@ int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
         }while(!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 
 int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     if( args[0] == NULL ) {
-        return 1;
+        return EXIT_SUCCESS;
     }
 
     for(int i = 0; i < cmsh_num_builtins(); i ++) {
@@ -89,7 +83,7 @@ int is_operator(char* token) {
 
 int extract_command(char** tokens, int start, char** command) {
     int i = 0, end = start;
-    for(; tokens[end] != NULL && is_operator(tokens[end]) == 0; end ++, i ++) {
+    for(; tokens[end] != NULL && !is_operator(tokens[end]); end ++, i ++) {
         command[i] = malloc(strlen(tokens[end]));
         strcpy(command[i], tokens[end]);
     }
@@ -100,14 +94,16 @@ int extract_command(char** tokens, int start, char** command) {
 
 int cmsh_commands_process(char* line) {
     // see if is an empty command 
-    if( is_empty_command(line) ) return 1;    
+    if( is_empty_command(line) ) return EXIT_SUCCESS;    
     line = delete_comment(line);
     line = remplace_command_again(line);
+    if( line == NULL ) return EXIT_FAILURE;
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    if( tokens == NULL ) return EXIT_FAILURE;
 
     // see if i'll save the commnand
     int save = line[0] != ' ' 
-        ? strcmp(tokens[0], "history") == 0
+        ? !strcmp(tokens[0], "history") || !strcmp(tokens[0], "exit")
         ? 2 : 1 : 0; 
     // save in the history
     if( save == 2 ) save_in_history(line);
@@ -134,7 +130,10 @@ int cmsh_commands_process(char* line) {
         // See if there is an output file
         if( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) {
             if( tokens[t + 1] == NULL ) {
-                return -1;
+                !strcmp(tokens[t], ">")
+                    ? perror("cmsh: The command > needs an output file\n")
+                    : perror("cmsh: The command >> needs an output file\n");
+                return EXIT_FAILURE;
             }
             fd_output = strcmp(tokens[t], ">") == 0 
                 ? file_descriptor_out(tokens[t + 1]) 
@@ -150,6 +149,7 @@ int cmsh_commands_process(char* line) {
             pipe(pipefd);
 
             int status = cmsh_execute(command, fd_input, -1, pipefd);
+            if( status == EXIT_FAILURE ) return EXIT_FAILURE;
             fd_input = pipefd[0]; // save to the next command
             t ++;
         }
@@ -163,10 +163,9 @@ int cmsh_commands_process(char* line) {
 
     int temp[2] = {-1, -1};
     int status = cmsh_execute(command, fd_input, fd_output, temp);
-    close(fd_input); close(fd_output);
-
     if( save == 1 ) save_in_history(line);
 
+    close(fd_input); close(fd_output);
     free(command); free(line); free(tokens);
     return status;
 } 
