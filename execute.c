@@ -73,9 +73,67 @@ int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
+int is_delim(char c, char* line) {
+    for(int k = 0; k < strlen(line); k ++) {
+        if( c == line[k] ) return 1;
+    }
+    return 0;
+}
 
-int extract_command(char** tokens, int start, char** command) {
+int extract_command(char* line, char** tokens, int start, char** command) {
     int i = 0, end = start;
+    if( tokens[start] == NULL ) return 0;
+
+    // set command
+    if( !strcmp(tokens[start], "set") ) {
+        command[i] = malloc(strlen(tokens[end]));
+        strcpy(command[i++], tokens[end++]);
+
+        // Take the name of the varaible
+        if( tokens[end] != NULL && !is_operator(tokens[end]) ) {
+            command[i] = malloc(strlen(tokens[end]));
+            strcpy(command[i++], tokens[end++]);
+        } else {
+            command[i] = NULL;
+            return end - start;
+        }
+
+        //take the value of the variable
+        if( tokens[end] != NULL && tokens[end][0] == '`' ) {
+            // Have an expresion to evaluate
+            for(; tokens[end] != NULL; end ++, i ++) {
+                command[i] = malloc(strlen(tokens[end]));
+                strcpy(command[i], tokens[end]);
+
+                if( tokens[end][ strlen(tokens[end]) - 1 ] == '`' ) break;
+            }
+
+            if( tokens[end] == NULL && command[i - 1][ strlen(command[i - 1]) -1 ] != '`' ) {
+                perror("cmsh: The value is worng(Wait ` ` close)\n");
+                return -1;
+            }
+        } else {
+            // Take the rest of the command like a string 
+            int n = strlen(line), ctokens = 0;
+            for(int j = 0; j < n; j++) {
+                if( is_delim(line[j], CMSH_TOK_DELIM) ) continue;
+            
+                if( ctokens == end ) {
+                    command[i] = sub_str(line, j, strlen(line) - 1);
+                    command[i + 1] = NULL;
+                    // print_tokens(command);
+                    n = 0;
+                    for(; tokens[n] != NULL; n++);
+                    return n - start;
+                }
+
+                // start a token
+                while(j < n && !is_delim(line[j], CMSH_TOK_DELIM)) j ++; j--;
+                ctokens ++;
+            }   
+        }
+    }
+
     for(; tokens[end] != NULL && !is_operator(tokens[end]); end ++, i ++) {
         command[i] = malloc(strlen(tokens[end]));
         strcpy(command[i], tokens[end]);
@@ -89,6 +147,10 @@ int cmsh_commands_process(char* line) {
     // see if is an empty command 
     if( is_empty_command(line) ) return EXIT_SUCCESS;    
     line = delete_comment(line);
+
+    char* original = malloc(strlen(line));
+    strcpy(original, line);
+
     line = remplace_command_again(line);
     if( line == NULL ) return EXIT_FAILURE;
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
@@ -107,7 +169,7 @@ int cmsh_commands_process(char* line) {
 
     // Get the first command
     command = malloc(100 * sizeof(char*));
-    count_args = extract_command(tokens, 0, command);
+    count_args = extract_command(original, tokens, 0, command);
     t += count_args;
 
     // See if there is an input file
@@ -150,7 +212,7 @@ int cmsh_commands_process(char* line) {
         // Get another command
         free(command);
         command = malloc(100 * sizeof(char*));
-        count_args = extract_command(tokens, t, command);
+        count_args = extract_command(original, tokens, t, command);
         t += count_args;
     }   
 

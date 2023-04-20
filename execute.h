@@ -5,7 +5,7 @@
 #ifndef PRACTIC_SHELL_EXECUTE_H
 #define PRACTIC_SHELL_EXECUTE_H
 
-int extract_command(char** tokens, int start, char** command);
+int extract_command(char* line, char** tokens, int start, char** command);
 
 int cmsh_commands_process(char *line);
 
