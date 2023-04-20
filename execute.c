@@ -99,12 +99,13 @@ int extract_command(char** tokens, int start, char** command) {
 }
 
 int cmsh_commands_process(char* line) {
+    // see if is an empty command 
+    if( is_empty_command(line) ) return 1;    
+    line = delete_comment(line);
+    line = remplace_command_again(line);
+    printf("LINE: %s\n", line);
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
     int save = 0;
-
-    if( tokens[0] == NULL ) {
-        return 1;
-    }
 
     // see if i'll save the commnand
     save = line[0] != ' ' ? 1 : 0;
