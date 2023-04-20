@@ -103,7 +103,7 @@ int cmsh_commands_process(char* line) {
     if( is_empty_command(line) ) return 1;    
     line = delete_comment(line);
     line = remplace_command_again(line);
-    printf("LINE: %s\n", line);
+    // printf("LINE: %s\n", line);
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
     int save = 0;
 
@@ -141,7 +141,6 @@ int cmsh_commands_process(char* line) {
     }
 
     while( tokens[t] != NULL ) {
-
         // See if there is an output file
         if( strcmp(tokens[t], ">") == 0 || strcmp(tokens[t], ">>") == 0 ) {
             if( tokens[t + 1] == NULL ) {
