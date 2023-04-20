@@ -100,18 +100,27 @@ int extract_command(char* line, char** tokens, int start, char** command) {
 
         //take the value of the variable
         if( tokens[end] != NULL && tokens[end][0] == '`' ) {
+            command[i] = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
+            int first = 1;
             // Have an expresion to evaluate
-            for(; tokens[end] != NULL; end ++, i ++) {
-                command[i] = malloc(strlen(tokens[end]));
-                strcpy(command[i], tokens[end]);
-
-                if( tokens[end][ strlen(tokens[end]) - 1 ] == '`' ) break;
+            for(; tokens[end] != NULL; end ++) {
+                first ? strcpy(command[i], tokens[end]) : strcat(command[i], tokens[end]);
+                first = 0;  
+                if( tokens[end][ strlen(tokens[end]) - 1 ] == '`' ) {
+                    i ++, end++;
+                    break;
+                }
+                strcat(command[i], " ");
             }
 
             if( tokens[end] == NULL && command[i - 1][ strlen(command[i - 1]) -1 ] != '`' ) {
-                perror("cmsh: The value is worng(Wait ` ` close)\n");
+                perror("cmsh: The value is worng(Waiting ` ` close)\n");
                 return -1;
             }
+
+            command[i] = NULL;
+            return end - start;
+
         } else {
             // Take the rest of the command like a string 
             int n = strlen(line), ctokens = 0;
@@ -151,17 +160,8 @@ int cmsh_commands_process(char* line) {
     char* original = malloc(strlen(line));
     strcpy(original, line);
 
-    line = remplace_command_again(line);
-    if( line == NULL ) return EXIT_FAILURE;
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
     if( tokens == NULL ) return EXIT_FAILURE;
-
-    // see if i'll save the commnand
-    int save = line[0] != ' ' 
-        ? !strcmp(tokens[0], "history") || !strcmp(tokens[0], "exit")
-        ? 2 : 1 : 0; 
-    // save in the history
-    if( save == 2 ) save_in_history(line);
 
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
@@ -170,6 +170,10 @@ int cmsh_commands_process(char* line) {
     // Get the first command
     command = malloc(100 * sizeof(char*));
     count_args = extract_command(original, tokens, 0, command);
+    if( count_args == -1 ) {
+        free(line); free(original); free(tokens); free(command);
+        return EXIT_FAILURE;
+    }
     t += count_args;
 
     // See if there is an input file
@@ -213,14 +217,49 @@ int cmsh_commands_process(char* line) {
         free(command);
         command = malloc(100 * sizeof(char*));
         count_args = extract_command(original, tokens, t, command);
+        if( count_args == -1 ) {
+            free(line); free(original); free(tokens); free(command);
+            return EXIT_FAILURE;
+        }
         t += count_args;
     }   
 
     int temp[2] = {-1, -1};
     int status = cmsh_execute(command, fd_input, fd_output, temp);
-    if( save == 1 ) save_in_history(line);
 
     close(fd_input); close(fd_output);
-    free(command); free(line); free(tokens);
+    free(command); free(line); free(tokens); free(original);
     return status;
 } 
+
+
+int cmsh_instructions_process(char* line) {
+   // see if is an empty command 
+    if( is_empty_command(line) ) return EXIT_SUCCESS;    
+    line = delete_comment(line);
+
+    char* original = malloc(strlen(line));
+    strcpy(original, line);
+
+    line = remplace_command_again(line);
+    if( line == NULL ) return EXIT_FAILURE;
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    if( tokens == NULL ) return EXIT_FAILURE;
+
+    // see if i'll save the commnand
+    int save = line[0] != ' ' 
+        ? !strcmp(tokens[0], "history") || !strcmp(tokens[0], "exit")
+        ? 2 : 1 : 0; 
+
+    // save in the history
+    if( save == 2 ) save_in_history(line);
+
+    char* instruction = malloc(strlen(line));
+    strcpy(instruction, line);
+    int status = cmsh_commands_process(instruction);
+
+    // save in the history
+    if( save == 1 ) save_in_history(line); 
+    free(line); free(tokens);
+    return status;
+}

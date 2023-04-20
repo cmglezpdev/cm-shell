@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "parser.h"
 #include "builtin.h"
+#include "execute.h"
 
 char* CMSH_HOME;
 char* vars[CMSH_SIZE_APHABET_VARIABLES];
@@ -174,6 +175,7 @@ char* get_history_file_path() {
 int cmsh_set(char** args) {
     char* var = args[1];
     char* value = args[2];
+    char* buffer = NULL;
 
     if( strlen(var) > 1 ) {
         perror("cmsh: The variable must be a letter [a...z]\n");
@@ -191,8 +193,38 @@ int cmsh_set(char** args) {
         return EXIT_FAILURE;
     }
 
+    if( value[0] == '`' ) {
+        value = sub_str(value, 1, strlen(value) - 2);
+
+        int fd[2]; pipe(fd);
+        pid_t pid = fork();
+        int status = 0;
+
+        if( pid == 0 ) {
+            dup2(fd[1], STDOUT_FILENO);
+            close(fd[1]);
+            close(fd[0]);
+        
+            cmsh_commands_process(value);
+            exit(EXIT_FAILURE);
+        } else if(pid > 0) {
+            do {
+                waitpid(pid, &status, WUNTRACED);
+            } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+        }
+
+        buffer = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
+
+        close(fd[1]);
+        read(fd[0], buffer, CMSH_TOK_BUFF_SIZE);
+        close(fd[0]);
+
+        value = buffer;
+    }
+
     vars[v] = malloc(strlen(value) * sizeof(char));
     strcpy(vars[v], value);
+    if( buffer != NULL ) free(buffer); 
 
     return EXIT_SUCCESS;
 }
