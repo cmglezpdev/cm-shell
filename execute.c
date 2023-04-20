@@ -21,6 +21,8 @@ int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
 
     pid = fork();
     if(pid == 0) {
+        // Child process
+
         if( fd_input != -1 ) {
             dup2(fd_input, STDIN_FILENO);
             // close(fd_input);
@@ -34,7 +36,14 @@ int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
             close(pipes[0]);
         }
 
-        // Child process
+        // builtin commands with output
+        for(int i = 0; i < cmsh_num_builtins_out(); i ++) {
+            if( strcmp(args[0], builtin_str_out[i]) == 0 ) {
+                exit((*builtin_func_out[i])(args));
+            }
+        }
+
+        // Linux internal command 
         if( execvp(args[0], args) == -1 ) {
             perror("cmsh: command error\n");
             exit(EXIT_FAILURE);
