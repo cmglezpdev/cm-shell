@@ -105,23 +105,9 @@ int cmsh_commands_process(char* line) {
     line = remplace_command_again(line);
     // printf("LINE: %s\n", line);
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
-    int save = 0;
 
     // see if i'll save the commnand
-    save = line[0] != ' ' ? 1 : 0;
-    
-    // see if it is the again command
-    if( strcmp(tokens[0], "again") == 0 ) {
-        if( tokens[1] == NULL ) {
-            perror("cmsh: The number of the command to execute again is required\n");
-            exit(EXIT_FAILURE);
-        }
-
-        int number = (int)strtol(tokens[1], NULL, 10);
-        line = get_again(number);
-        tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
-    }
-    
+    int save = line[0] != ' ' ? 1 : 0;    
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
     char** command;
@@ -178,7 +164,6 @@ int cmsh_commands_process(char* line) {
     // save in the history
     if( save == 1 ) save_in_history(line);
 
-    // printf("HERE 2\n");
     free(command); free(line); free(tokens);
     return status;
 } 
