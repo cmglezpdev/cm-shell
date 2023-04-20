@@ -71,28 +71,6 @@ char **cmsh_split_line(const char* input, char* delim) {
     return tokens;
 }
 
-char** add_new_args_from_file(char* command, char* file) {
-    int buffsize = CMSH_TOK_BUFF_SIZE;
-    char* doc = cmsh_read_file(file);
-    char** tokens = cmsh_split_line(doc, CMSH_TOK_DELIM);
-    char** args = malloc(buffsize * sizeof(char*));
-    int size;
-
-    args[0] = command;
-    for(size = 1; tokens[size - 1] != NULL; size ++) {
-        if( size >= buffsize ) {
-            buffsize *= 2;
-            args = realloc(args, buffsize * sizeof(char*));
-        }
-        args[size] = malloc(strlen(tokens[size - 1]) * sizeof(char));
-        strcpy(args[size], tokens[size - 1]);
-    }
-    args[size] = NULL;
-    free(doc); free(tokens);
-    return args;
-}
-
-
 char* remplace_command_again(char* line) {
     // remplace the again commands by the corresponding command in the history
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
