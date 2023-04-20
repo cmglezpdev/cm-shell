@@ -8,7 +8,7 @@
 
 #include "execute.h"
 #include "parser.h"
-
+#include "builtin.h"
 
 #define BOLD_CYAN "\033[1;36m"
 #define WHITE "\033[0m"
@@ -31,6 +31,9 @@ void cmsh_loop( void ) {
     uid = getuid();
     pw = getpwuid(uid);
 
+    CMSH_HOME = malloc(strlen(pw -> pw_dir) * sizeof(char));
+    strcpy(CMSH_HOME, pw -> pw_dir);
+
     do {
         head_shell(pw -> pw_name);
         line = cmsh_read_line();
@@ -39,7 +42,6 @@ void cmsh_loop( void ) {
     
     free(line);
 }
-
 
 int main(int ac, char **argv) {
 
