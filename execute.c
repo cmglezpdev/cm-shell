@@ -121,10 +121,6 @@ int cmsh_commands_process(char* line) {
         tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
     }
     
-    // save in the history
-    if( save == 1 ) save_in_history(line);
-    // printf("HERE\n");
-
     int t = 0, count_args;
     int fd_input = -1, fd_output = -1;
     char** command;
@@ -178,6 +174,10 @@ int cmsh_commands_process(char* line) {
     int temp[2] = {-1, -1};
     int status = cmsh_execute(command, fd_input, fd_output, temp);
     close(fd_input); close(fd_output);
+
+    // save in the history
+    if( save == 1 ) save_in_history(line);
+
     // printf("HERE 2\n");
     free(command); free(line); free(tokens);
     return status;
