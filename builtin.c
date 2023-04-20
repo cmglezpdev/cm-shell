@@ -72,14 +72,32 @@ int cmsh_history(char** args) {
         printf("%d: %s\n", i + 1, history[i]);
     }
     free(history);
+    return 1;
 }
 
 
 char** get_history() {
     int fd = open(CMSH_HISTORY_FILE, O_CREAT | O_RDONLY);
-    char* doc = malloc(CMSH_TOK_BUFF_SIZE);
+    char* doc = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
     read(fd, doc, CMSH_TOK_BUFF_SIZE);
-    return cmsh_split_line(doc, "\n");
+
+    char** commands = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
+    char* line = NULL;
+    int s = 0, k = 0, n = strlen(doc);
+
+    for(s = 0; s < n; s ++) {
+        int e = s;
+        while( e < n && doc[e] != '\n' ) e ++;
+        line = sub_str(doc, s, e - 1);
+        commands[k] = malloc((e - s) * sizeof(char));
+        strcpy(commands[k ++], line);
+        s = e;
+    }
+
+    commands[k] = NULL;
+    if(line != NULL) free(line); 
+    free(doc); close(fd);
+    return commands;
 }
 
 char* get_again(int number) {
@@ -94,13 +112,14 @@ char* get_again(int number) {
 
     for(int i = 0; commands[i] != NULL; i ++ ) {
         if( number == i ) {
-            again = malloc(strlen(commands[i]));
-            strcmp(again, commands[i]);
+            again = malloc(strlen(commands[i]) * sizeof(char));
+            strcpy(again, commands[i]);
             break;
         }
     }
 
     if( again == NULL ) {
+        free(commands);
         perror("cmsh: The command doesn't exist in the history\n");
         exit(EXIT_FAILURE);
     }
@@ -111,18 +130,18 @@ char* get_again(int number) {
 
 void save_in_history(char *line) {
     char** commands = get_history();
-    int t;
+    int t; // total commands
     for(t = 0; commands[t] != NULL; t ++);
     int start = (t < 10) ? 0 : 1;
-    char* history = malloc(CMSH_MAX_BUFFSIZE);
+    char* history = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
 
     for(int i = start; i < t; i ++) {
-        strcat(history, commands[i]);        
+        strcat(history, commands[i]);
         strcat(history, "\n");
     }
 
     strcat(history, line);
-
+ 
     int fd = open(CMSH_HISTORY_FILE, O_WRONLY | O_TRUNC);
     write(fd, history, strlen(history));
 
