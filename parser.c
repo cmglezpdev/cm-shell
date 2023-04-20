@@ -48,8 +48,6 @@ char **cmsh_split_line(const char* input, char* delim) {
         exit(EXIT_FAILURE);
     }
 
-    line = delete_comment(line);
-
     token = strtok(line, delim);
     while(token != NULL) {
         tokens[position] = malloc(strlen(token));
@@ -92,4 +90,32 @@ char** add_new_args_from_file(char* command, char* file) {
     args[size] = NULL;
     free(doc); free(tokens);
     return args;
+}
+
+
+char* remplace_command_again(char* line) {
+    // remplace the again commands by the corresponding command in the history
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    char *command = malloc(CMSH_TOK_BUFF_SIZE);
+    ( line[0] == ' ' ) ? strcpy(command, " ") : strcpy(command, "");
+
+    for(int t = 0; tokens[t] != NULL; t ++) {
+        if( strcmp(tokens[t], "again") == 0 ) {
+            if( tokens[t + 1] == NULL || !is_number(tokens[t + 1]) ) {
+                perror("cmsh: the again command needs a numberlike parameter\n");
+                exit(EXIT_FAILURE);
+            }
+
+            char* history_command = get_again((int)strtol(tokens[++t], NULL, 10));
+            strcat(command, history_command);
+            strcat(command, " ");
+            continue;
+        }
+    
+        strcat(command, tokens[t]);
+        strcat(command, " ");
+    }
+
+    free(line); free(tokens);
+    return command;
 }
