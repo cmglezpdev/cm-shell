@@ -42,7 +42,6 @@ char **cmsh_split_line(const char* input, char* delim) {
     int buffsize = CMSH_TOK_BUFF_SIZE, position = 0;
     char **tokens = malloc(buffsize * sizeof(char *));
     char *token;
-
     if( !tokens ) {
         free(line);
         perror("cmsh: allocation error\n");
@@ -53,7 +52,8 @@ char **cmsh_split_line(const char* input, char* delim) {
 
     token = strtok(line, delim);
     while(token != NULL) {
-        tokens[position ++] = token;
+        tokens[position] = malloc(strlen(token));
+        strcpy(tokens[position ++], token);
 
         if( position >= buffsize ) {
             buffsize += CMSH_TOK_BUFF_SIZE;
@@ -70,7 +70,6 @@ char **cmsh_split_line(const char* input, char* delim) {
 
     free(token); free(line);
     tokens[position] = NULL;
-    // printf("SPLIT\n");
     return tokens;
 }
 
