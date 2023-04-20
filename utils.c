@@ -111,6 +111,16 @@ int is_number(char* line) {
     return 1;
 }
 
+char* operators[] = {">", "<", ">>", "|"};
+
+int is_operator(char* token) {
+    for(int i = 0; i < 4; i ++) {
+        if( strcmp(token, operators[i]) == 0 ) return 1;
+    }
+    return 0;
+}
+
+
 // TEMPORALS
 
 void print_tokens(char** args) {

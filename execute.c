@@ -73,13 +73,6 @@ int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
-char* operators[] = {">", "<", ">>", "|"};
-int is_operator(char* token) {
-    for(int i = 0; i < 4; i ++) {
-        if( strcmp(token, operators[i]) == 0 ) return 1;
-    }
-    return 0;
-}
 
 int extract_command(char** tokens, int start, char** command) {
     int i = 0, end = start;
