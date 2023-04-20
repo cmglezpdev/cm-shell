@@ -118,7 +118,7 @@ int extract_command(char* line, char** tokens, int start, char** command) {
             // Take the rest of the command like a string 
             int n = strlen(line), ctokens = 0;
             for(int j = 0; j < n; j++) {
-                if( is_delim(line[j], CMSH_TOK_DELIM) ) continue;
+                if( contain(line[j], CMSH_TOK_DELIM) ) continue;
             
                 if( ctokens == end ) {
                     command[i] = sub_str(line, j, strlen(line) - 1);
@@ -130,7 +130,7 @@ int extract_command(char* line, char** tokens, int start, char** command) {
                 }
 
                 // start a token
-                while(j < n && !is_delim(line[j], CMSH_TOK_DELIM)) j ++; j--;
+                while(j < n && !contain(line[j], CMSH_TOK_DELIM)) j ++; j--;
                 ctokens ++;
             }   
         }
