@@ -12,26 +12,31 @@
 #include "builtin.h"
 
 char* CMSH_HOME;
+char* vars[CMSH_SIZE_APHABET_VARIABLES];
 
 // List builtin commands, followed by their corresponding functions
 char *builtin_str[] = { 
     "cd", 
-    "exit" 
+    "exit",
+    "set"
 };
 
 char *builtin_str_out[] = { 
     "help",
-    "history"
+    "history",
+    "get"
 };
 
 int (*builtin_func[]) (char **) = {
     &cmsh_cd,
-    &cmsh_exit
+    &cmsh_exit,
+    &cmsh_set
 };
 
 int (*builtin_func_out[]) (char **) = {
     &cmsh_help,
-    &cmsh_history
+    &cmsh_history,
+    &cmsh_get
 };
 
 
@@ -163,4 +168,69 @@ char* get_history_file_path() {
     strcat(hpath, "/");
     strcat(hpath, CMSH_HISTORY_FILE);
     return hpath;
+}
+
+
+int cmsh_set(char** args) {
+    char* var = args[1];
+    char* value = args[2];
+
+    if( strlen(var) > 1 ) {
+        perror("cmsh: The variable must be a letter [a...z]\n");
+        return EXIT_FAILURE;
+    }
+
+    int v = var[0] - 'a';
+    if( v < 0 || v >= 26 ) {
+        perror("cmsh: The varaible must be a lower case letter [a...z]\n");
+        return EXIT_FAILURE;
+    }
+
+    if( value == NULL ) {
+        perror("cmsh: The variable needs a value\n");
+        return EXIT_FAILURE;
+    }
+
+    vars[v] = malloc(strlen(value) * sizeof(char));
+    strcpy(vars[v], value);
+
+    return EXIT_SUCCESS;
+}
+
+int cmsh_get(char** args) {
+
+    char* var = args[1];
+    if( var == NULL ) {
+        for(int i = 0; i < CMSH_SIZE_APHABET_VARIABLES; i ++) {
+            if( vars[i] != NULL ) {
+                printf("%c = %s\n", (char)(i + 'a'), vars[i]);
+            }
+        }
+        return EXIT_SUCCESS;
+    }
+
+    if( strlen(var) > 1 ) {
+        perror("cmsh: The variable must be a letter [a...z]\n");
+        return EXIT_FAILURE;
+    }
+
+    int v = var[0] - 'a';
+    if( v < 0 || v >= 26 ) {
+        perror("cmsh: The varaible must be a lower case letter [a...z]\n");
+        return EXIT_FAILURE;
+    }
+
+    if( vars[v] == NULL ) {
+        perror("cmsh: Variable no found\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("%s\n", vars[v]);
+    return EXIT_FAILURE;
+}
+
+
+void cmsh_init_vars() {
+    for(int v = 0; v < CMSH_SIZE_APHABET_VARIABLES; v ++)
+        vars[v] = NULL;
 }
