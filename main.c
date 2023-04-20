@@ -18,7 +18,7 @@
 void head_shell(char *name) {
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
-    printf("%cmsh@%s:%s%s$ %s", BOLD_RED, name, BOLD_CYAN, cwd, WHITE);
+    printf("%scmsh@%s:%s%s$ %s", BOLD_RED, name, BOLD_CYAN, cwd, WHITE);
 }
 
 
