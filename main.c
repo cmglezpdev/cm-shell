@@ -45,6 +45,8 @@ void cmsh_loop( void ) {
 
 int main(int ac, char **argv) {
 
+    cmsh_init_vars();
+
     cmsh_loop();
 
     return EXIT_SUCCESS;
