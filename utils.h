@@ -29,5 +29,9 @@ extern char *operators[4];
 
 int is_operator(char* token);
 
+int contain(char c, char* line);
+
+int is_sub(char* patt, char* line, int pos);
+
 #endif //PRACTIC_SHELL_UTILS_H
 

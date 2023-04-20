@@ -73,13 +73,6 @@ int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
-int is_delim(char c, char* line) {
-    for(int k = 0; k < strlen(line); k ++) {
-        if( c == line[k] ) return 1;
-    }
-    return 0;
-}
-
 int extract_command(char* line, char** tokens, int start, char** command) {
     int i = 0, end = start;
     if( tokens[start] == NULL ) return 0;

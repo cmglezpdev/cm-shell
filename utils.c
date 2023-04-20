@@ -120,6 +120,24 @@ int is_operator(char* token) {
     return 0;
 }
 
+int contain(char c, char* line) {
+    for(int k = 0; k < strlen(line); k ++) {
+        if( c == line[k] ) return 1;
+    }
+    return 0;
+}
+
+int is_sub(char *patt, char* line, int pos) {
+    int n = strlen(line),
+        m = strlen(patt);
+    if( pos < 0 || pos > n ) 
+        return 0;
+
+    int i;
+    for(i = 0; pos + i < n && i < m && line[pos + i] == patt[i]; i ++);
+    
+    return i == m ? 1 : 0;
+}
 
 // TEMPORALS
 
