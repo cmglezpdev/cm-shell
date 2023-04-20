@@ -17,9 +17,14 @@ void print_tokens(char** tokens);
 
 char *sub_str(char *line, int init, int end);
 
+int is_empty_command(char* command);
+
+int is_number(char* line);
+
 char* cmsh_read_file( char* file );
 
 int cmsh_write_file(char* file, char* content, int trunc);
+
 
 #endif //PRACTIC_SHELL_UTILS_H
 

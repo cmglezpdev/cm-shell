@@ -94,6 +94,22 @@ int cmsh_write_file(char* file, char* content, int trunc) {
     return 1;
 }
 
+int is_empty_command(char* command) {
+    if( command == NULL ) return 1;
+    for(int i = 0; i < strlen(command); i ++) {
+        if ( command[i] != ' ' && command[i] != '\n' && command[i] != '#' )
+            return 0;
+    }
+    return 1;
+}
+
+int is_number(char* line) {
+    for(int i = 0; i < strlen(line); i ++) {
+        if( line[i] >= '0' & line[i] <= '9' ) continue;
+        return 0;
+    }
+    return 1;
+}
 
 // TEMPORALS
 
