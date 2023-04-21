@@ -121,6 +121,15 @@ int is_operator(char* token) {
     return 0;
 }
 
+char* concat_operators[] = {";", "||", "&&"};
+
+int is_concat_operator(char* token) {
+    for(int i = 0; i < 3; i ++) {
+        if( strcmp(token, concat_operators[i]) == 0 ) return 1;
+    }
+    return 0;
+}
+
 int contain(char c, char* line) {
     for(int k = 0; k < strlen(line); k ++) {
         if( c == line[k] ) return 1;
