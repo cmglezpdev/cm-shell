@@ -277,17 +277,16 @@ int cmsh_instructions_process(char* line) {
         if( strcmp(tokens[ptoken], "||") == 0 ) {
             int ss = cmsh_commands_process(instruction);
             if( status == -1 ) status = ss;
-            if( status == EXIT_SUCCESS ) break;
-            status = cmsh_commands_process(instruction);
+            if( status == EXIT_SUCCESS ) continue;
+            status = ss;
             continue;
         }
 
         if( strcmp(tokens[ptoken], "&&") == 0 ) {
             int ss = cmsh_commands_process(instruction);
-            printf("STATUS: %d\n", ss);
             if( status == -1 ) status = ss;
-            if( status == EXIT_FAILURE ) break;
-            status = cmsh_commands_process(instruction);
+            if( status == EXIT_FAILURE ) continue;
+            status = ss;
         }
     }
 
