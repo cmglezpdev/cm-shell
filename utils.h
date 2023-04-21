@@ -33,5 +33,9 @@ int contain(char c, char* line);
 
 int is_sub(char* patt, char* line, int pos);
 
+int max_sub(char **patts, char *line, int pos);
+
+char* get_token(char* line, int start);
+
 #endif //PRACTIC_SHELL_UTILS_H
 

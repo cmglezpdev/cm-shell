@@ -48,6 +48,7 @@ int file_descriptor_out_append(char* fileName) {
 }
 
 char *sub_str(char *line, int init, int end) {
+    if( end < init ) return NULL;
     char *new_line = (char *) malloc(end - init + 1);
 
     int i;
@@ -139,11 +140,38 @@ int is_sub(char *patt, char* line, int pos) {
     return i == m ? 1 : 0;
 }
 
+int max_sub(char **patts, char *line, int pos) {
+    int n = strlen(line);
+    if( pos < 0 || pos > n ) 
+        return -1;
+
+    int max = -1, len = -1;
+    for(int p = 0; patts[p] != NULL; p ++) {
+        char* patt = patts[p];
+        int m = strlen(patt);
+        if( pos + m >= n || m < len ) continue;
+        
+        if( is_sub(patt, line, pos) ) max = p, len = m;
+    }
+    return max;
+}
+
+char* get_token(char* line, int start) {
+    int end = start;
+    for(; 
+        end < strlen(line) && 
+        !contain(line[end], CMSH_TOK_DELIM) && 
+        max_sub(operators, line, end) == -1; 
+    end ++);
+
+    return sub_str(line, start, end - 1);
+}
+
 // TEMPORALS
 
 void print_tokens(char** args) {
     printf("TOKENS PRINT FUNCTION \n");
     for(int i = 0; args[i] != NULL; i ++)
-        printf("%s ", args[i]);
+        printf("%s\n", args[i]);
     printf("\n");
 }
