@@ -29,6 +29,10 @@ extern char *operators[4];
 
 int is_operator(char* token);
 
+extern char *concat_operators[3];
+
+int is_concat_operator(char* token);
+
 int contain(char c, char* line);
 
 int is_sub(char* patt, char* line, int pos);
