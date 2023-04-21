@@ -155,7 +155,6 @@ int cmsh_commands_process(char* line) {
 
     int positions[CMSH_TOK_BUFF_SIZE];
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
-    
     if( tokens == NULL ) return EXIT_FAILURE;
 
     int t = 0, count_args;
@@ -235,6 +234,8 @@ int cmsh_instructions_process(char* line) {
 
     char* original = malloc(strlen(line));
     strcpy(original, line);
+    char* instruction;
+    int status = -1;
 
     line = remplace_command_again(line);
     if( line == NULL ) return EXIT_FAILURE;
@@ -250,12 +251,49 @@ int cmsh_instructions_process(char* line) {
     // save in the history
     if( save == 2 ) save_in_history(line);
 
-    char* instruction = malloc(strlen(line));
-    strcpy(instruction, line);
-    int status = cmsh_commands_process(instruction);
+    int ptoken = 0, pindex = 0;
+    for(; tokens[ptoken] != NULL; ptoken ++) {
+        int etoken = ptoken;
+        pindex = positions[ptoken];
+
+        while( tokens[etoken] != NULL && !is_concat_operator(tokens[etoken]) ) etoken ++;
+        instruction = sub_str(line, positions[ptoken], positions[etoken - 1] + strlen(tokens[etoken - 1]) - 1);
+        ptoken = etoken;
+
+        if( tokens[ptoken] == NULL ) {
+            status = cmsh_commands_process(instruction);
+            break;
+        }
+        
+        if( strcmp(tokens[ptoken], ";") == 0 ) {
+            int ss = cmsh_commands_process(instruction);
+            status = ( ss == EXIT_SUCCESS ) 
+                    ? EXIT_SUCCESS
+                    : ( status == EXIT_SUCCESS )
+                    ? EXIT_SUCCESS : EXIT_FAILURE;
+            continue;
+        }
+        
+        if( strcmp(tokens[ptoken], "||") == 0 ) {
+            int ss = cmsh_commands_process(instruction);
+            if( status == -1 ) status = ss;
+            if( status == EXIT_SUCCESS ) break;
+            status = cmsh_commands_process(instruction);
+            continue;
+        }
+
+        if( strcmp(tokens[ptoken], "&&") == 0 ) {
+            int ss = cmsh_commands_process(instruction);
+            printf("STATUS: %d\n", ss);
+            if( status == -1 ) status = ss;
+            if( status == EXIT_FAILURE ) break;
+            status = cmsh_commands_process(instruction);
+        }
+    }
 
     // save in the history
     if( save == 1 ) save_in_history(line); 
-    free(line); free(tokens);
+    free(line); free(tokens); free(instruction);
+    free(original);
     return status;
 }
