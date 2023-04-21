@@ -153,7 +153,9 @@ int cmsh_commands_process(char* line) {
     char* original = malloc(strlen(line));
     strcpy(original, line);
 
-    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    int positions[CMSH_TOK_BUFF_SIZE];
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
+    
     if( tokens == NULL ) return EXIT_FAILURE;
 
     int t = 0, count_args;
@@ -192,7 +194,7 @@ int cmsh_commands_process(char* line) {
                 : file_descriptor_out_append(tokens[t + 1]);
             
             t += 2;
-            break;
+            continue;
         }
 
         // Pipe
@@ -236,7 +238,8 @@ int cmsh_instructions_process(char* line) {
 
     line = remplace_command_again(line);
     if( line == NULL ) return EXIT_FAILURE;
-    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    int positions[CMSH_TOK_BUFF_SIZE];
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
     if( tokens == NULL ) return EXIT_FAILURE;
 
     // see if i'll save the commnand

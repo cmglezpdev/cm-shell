@@ -35,8 +35,8 @@ char *cmsh_read_line( void ) {
 }
 
 
-char **cmsh_split_line(char* line, char* delim) {
-    int n = strlen(line), position = 0;
+char **cmsh_split_line(char* line, char* delim, int positions[]) {
+    int n = strlen(line), pos = 0;
     char** tokens = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
     char* token;
 
@@ -48,29 +48,31 @@ char **cmsh_split_line(char* line, char* delim) {
         // found an operator with size sz
         if( p != -1 ) {
             int sz = strlen(operators[p]);
-            printf("%s: %d\n", token, sz);
-            tokens[position] = malloc(i + sz - 1);
-            strcpy(tokens[position ++], operators[p]);
+            tokens[pos] = malloc(i + sz - 1);
+            positions[pos] = i;
+            strcpy(tokens[pos ++], operators[p]);
             i += sz - 1;
             continue;
         }
 
         // found a token
         token = get_token(line, i);
-        tokens[position] = malloc(strlen(token));
-        strcpy(tokens[position ++], token);
+        positions[pos] = i;
+        tokens[pos] = malloc(strlen(token));
+        strcpy(tokens[pos ++], token);
         i += strlen(token) - 1;
     }
 
 
-    tokens[position] = NULL;
+    tokens[pos] = NULL;
     free(token);
     return tokens;
 }
 
 char* remplace_command_again(char* line) {
     // remplace the again commands by the corresponding command in the history
-    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM);
+    int positions[CMSH_TOK_BUFF_SIZE];
+    char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
     char *command = malloc(CMSH_TOK_BUFF_SIZE);
     ( line[0] == ' ' ) ? strcpy(command, " ") : strcpy(command, "");
 
