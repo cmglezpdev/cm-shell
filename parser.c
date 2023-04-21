@@ -35,39 +35,36 @@ char *cmsh_read_line( void ) {
 }
 
 
-char **cmsh_split_line(const char* input, char* delim) {
-    char * line = malloc(strlen(input));
-    strcpy(line, input);
+char **cmsh_split_line(char* line, char* delim) {
+    int n = strlen(line), position = 0;
+    char** tokens = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
+    char* token;
 
-    int buffsize = CMSH_TOK_BUFF_SIZE, position = 0;
-    char **tokens = malloc(buffsize * sizeof(char *));
-    char *token;
-    if( !tokens ) {
-        free(line);
-        perror("cmsh: allocation error\n");
-        return NULL;
-    }
+    for(int i = 0; i < n; i ++) {
+        // space separator
+        if( contain(line[i], CMSH_TOK_DELIM) ) continue;
 
-    token = strtok(line, delim);
-    while(token != NULL) {
-        tokens[position] = malloc(strlen(token));
-        strcpy(tokens[position ++], token);
-
-        if( position >= buffsize ) {
-            buffsize += CMSH_TOK_BUFF_SIZE;
-            tokens = realloc(tokens, buffsize * sizeof(char *));
-
-            if( !tokens ) {
-                perror("cmsh: allocation error\n");
-                return NULL;
-            }
+        int p = max_sub(operators, line, i);
+        // found an operator with size sz
+        if( p != -1 ) {
+            int sz = strlen(operators[p]);
+            printf("%s: %d\n", token, sz);
+            tokens[position] = malloc(i + sz - 1);
+            strcpy(tokens[position ++], operators[p]);
+            i += sz - 1;
+            continue;
         }
 
-        token = strtok(NULL, delim);
+        // found a token
+        token = get_token(line, i);
+        tokens[position] = malloc(strlen(token));
+        strcpy(tokens[position ++], token);
+        i += strlen(token) - 1;
     }
 
-    free(token); free(line);
+
     tokens[position] = NULL;
+    free(token);
     return tokens;
 }
 

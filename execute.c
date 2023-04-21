@@ -73,13 +73,6 @@ int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]) {
     return cmsh_launch(args, fd_in, fd_out, pipes);
 }
 
-int is_delim(char c, char* line) {
-    for(int k = 0; k < strlen(line); k ++) {
-        if( c == line[k] ) return 1;
-    }
-    return 0;
-}
-
 int extract_command(char* line, char** tokens, int start, char** command) {
     int i = 0, end = start;
     if( tokens[start] == NULL ) return 0;
@@ -125,7 +118,7 @@ int extract_command(char* line, char** tokens, int start, char** command) {
             // Take the rest of the command like a string 
             int n = strlen(line), ctokens = 0;
             for(int j = 0; j < n; j++) {
-                if( is_delim(line[j], CMSH_TOK_DELIM) ) continue;
+                if( contain(line[j], CMSH_TOK_DELIM) ) continue;
             
                 if( ctokens == end ) {
                     command[i] = sub_str(line, j, strlen(line) - 1);
@@ -137,7 +130,7 @@ int extract_command(char* line, char** tokens, int start, char** command) {
                 }
 
                 // start a token
-                while(j < n && !is_delim(line[j], CMSH_TOK_DELIM)) j ++; j--;
+                while(j < n && !contain(line[j], CMSH_TOK_DELIM)) j ++; j--;
                 ctokens ++;
             }   
         }
