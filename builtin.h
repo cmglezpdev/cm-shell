@@ -11,9 +11,9 @@ extern char* vars[CMSH_SIZE_APHABET_VARIABLES];
 extern char* CMSH_HOME;
 
 // List builtin commands, followed by their corresponding functions
-extern char *builtin_str[4];
+extern char *builtin_str[6];
 
-extern int (*builtin_func[4]) (char **);
+extern int (*builtin_func[6]) (char **);
 
 extern char *builtin_str_out[3];
 
@@ -42,6 +42,10 @@ int cmsh_history(char **args);
 int cmsh_get(char **args);
 
 int cmsh_set(char **args);
+
+int cmsh_true(char **args);
+
+int cmsh_false(char **args);
 
 int cmsh_unset(char **args);
 

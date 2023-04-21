@@ -20,7 +20,9 @@ char *builtin_str[] = {
     "cd", 
     "exit",
     "set",
-    "unset"
+    "unset",
+    "true",
+    "false"
 };
 
 char *builtin_str_out[] = { 
@@ -34,6 +36,8 @@ int (*builtin_func[]) (char **) = {
     &cmsh_exit,
     &cmsh_set,
     &cmsh_unset,
+    &cmsh_true,
+    &cmsh_false
 };
 
 int (*builtin_func_out[]) (char **) = {
@@ -298,4 +302,12 @@ int cmsh_unset(char** args) {
 void cmsh_init_vars() {
     for(int v = 0; v < CMSH_SIZE_APHABET_VARIABLES; v ++)
         vars[v] = NULL;
+}
+
+int cmsh_true(char** args) {
+    return EXIT_SUCCESS;
+}
+
+int cmsh_false(char** args) {
+    return EXIT_FAILURE;
 }
