@@ -65,7 +65,6 @@ char **cmsh_split_line(char* line, char* delim) {
 
     tokens[position] = NULL;
     free(token);
-    print_tokens(tokens);
     return tokens;
 }
 
