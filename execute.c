@@ -165,7 +165,7 @@ int cmsh_commands_process(char* line) {
     command = malloc(100 * sizeof(char*));
     count_args = extract_command(original, tokens, 0, command);
     if( count_args == -1 ) {
-        free(line); free(original); free(tokens); free(command);
+        free(original); free(tokens); free(command);
         return EXIT_FAILURE;
     }
     t += count_args;
@@ -222,7 +222,7 @@ int cmsh_commands_process(char* line) {
     int status = cmsh_execute(command, fd_input, fd_output, temp);
 
     close(fd_input); close(fd_output);
-    free(command); free(line); free(tokens); free(original);
+    free(command); free(tokens); free(original);
     return status;
 } 
 
@@ -245,7 +245,7 @@ int cmsh_instructions_process(char* line) {
 
     // see if i'll save the commnand
     int save = line[0] != ' ' 
-        ? !strcmp(tokens[0], "history") || !strcmp(tokens[0], "exit")
+        ? !strcmp(tokens[0], "history") && tokens[1] == NULL || !strcmp(tokens[0], "exit")
         ? 2 : 1 : 0; 
 
     // save in the history
