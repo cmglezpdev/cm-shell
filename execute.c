@@ -123,7 +123,6 @@ int extract_command(char* line, char** tokens, int start, char** command) {
                 if( ctokens == end ) {
                     command[i] = sub_str(line, j, strlen(line) - 1);
                     command[i + 1] = NULL;
-                    // print_tokens(command);
                     n = 0;
                     for(; tokens[n] != NULL; n++);
                     return n - start;
@@ -247,7 +246,6 @@ int cmsh_instructions_process(char* line) {
             int _if, _then, _else, _end;
             _if = ptoken;
             int success = get_if_then_else_end(tokens, _if, &_then, &_else, &_end);
-            // printf("%d, %d, %d, %d\n", _if, _then, _else, _end);
             if( success == -1 || _if + 1 == _then || _then + 1 == _else || _then + 1 == _end || _else + 1 == _end ) {
                 perror("cmsh: Bad command. The if command is wrong written\n");
                 status = EXIT_FAILURE;
@@ -368,13 +366,11 @@ int cmsh_pre_process(char* line) {
     char* original = malloc(strlen(line));
     strcpy(original, line);
 
-    printf("-----------------%s---------------\n", line);
     // save in the history
     if( save == 1 ) save_in_history(original);
 
     int status = cmsh_instructions_process(line);
 
-    printf("-----------------%s---------------\n", line);
     // save in the history
     if( save == 2 ) save_in_history(original); 
     
