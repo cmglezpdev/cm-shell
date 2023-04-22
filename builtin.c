@@ -304,6 +304,13 @@ void cmsh_init_vars() {
         vars[v] = NULL;
 }
 
+void cmsh_create_history_file() {
+    char* path = get_history_file_path();
+    int fd = file_descriptor_out(path);
+    close(fd);
+    free(path);
+}
+
 int cmsh_true(char** args) {
     return EXIT_SUCCESS;
 }
