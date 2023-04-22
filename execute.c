@@ -123,7 +123,6 @@ int extract_command(char* line, char** tokens, int start, char** command) {
                 if( ctokens == end ) {
                     command[i] = sub_str(line, j, strlen(line) - 1);
                     command[i + 1] = NULL;
-                    // print_tokens(command);
                     n = 0;
                     for(; tokens[n] != NULL; n++);
                     return n - start;
@@ -208,11 +207,10 @@ int cmsh_commands_process(char* line) {
         }
 
         // Get another command
-        free(command);
         command = malloc(100 * sizeof(char*));
         count_args = extract_command(original, tokens, t, command);
         if( count_args == -1 ) {
-            free(line); free(original); free(tokens); free(command);
+            free(original); free(tokens); free(command);
             return EXIT_FAILURE;
         }
         t += count_args;
@@ -230,43 +228,75 @@ int cmsh_commands_process(char* line) {
 int cmsh_instructions_process(char* line) {
    // see if is an empty command 
     if( is_empty_command(line) ) return EXIT_SUCCESS;    
-    line = delete_comment(line);
 
-    char* original = malloc(strlen(line));
-    strcpy(original, line);
-    char* instruction;
+    char* instruction = NULL;
     int status = -1;
 
-    line = remplace_command_again(line);
-    if( line == NULL ) return EXIT_FAILURE;
     int positions[CMSH_TOK_BUFF_SIZE];
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
     if( tokens == NULL ) return EXIT_FAILURE;
-
-    // see if i'll save the commnand
-    int save = line[0] != ' ' 
-        ? !strcmp(tokens[0], "history") && tokens[1] == NULL || !strcmp(tokens[0], "exit")
-        ? 2 : 1 : 0; 
-
-    // save in the history
-    if( save == 2 ) save_in_history(line);
 
     int ptoken = 0, pindex = 0;
     for(; tokens[ptoken] != NULL; ptoken ++) {
         int etoken = ptoken;
         pindex = positions[ptoken];
-
-        while( tokens[etoken] != NULL && !is_concat_operator(tokens[etoken]) ) etoken ++;
-        instruction = sub_str(line, positions[ptoken], positions[etoken - 1] + strlen(tokens[etoken - 1]) - 1);
-        ptoken = etoken;
-
-        if( tokens[ptoken] == NULL ) {
-            status = cmsh_commands_process(instruction);
-            break;
-        }
         
+        int status_if = -1;
+        if( strcmp(tokens[ptoken], "if") == 0 ) {
+            int _if, _then, _else, _end;
+            _if = ptoken;
+            int success = get_if_then_else_end(tokens, _if, &_then, &_else, &_end);
+            if( success == -1 || _if + 1 == _then || _then + 1 == _else || _then + 1 == _end || _else + 1 == _end ) {
+                perror("cmsh: Bad command. The if command is wrong written\n");
+                status = EXIT_FAILURE;
+                break;
+            }
+
+            // if...then
+            instruction = sub_str(line, positions[_if + 1], positions[_then - 1] + strlen(tokens[_then - 1]) - 1);
+            status_if = cmsh_instructions_process(instruction);
+            if( status_if == EXIT_FAILURE && _else == -1 ) {
+                status = status_if;
+                break;
+            }
+
+            if( status_if == EXIT_SUCCESS ) {
+                // then...else or then ... end
+                int aux = _else != -1 ? _else : _end;
+                instruction = sub_str(line, positions[_then + 1], positions[aux - 1] + strlen(tokens[aux - 1]) - 1);
+                status_if = cmsh_instructions_process(instruction);
+            } 
+            else if( _else != -1 ) {
+                 // else...end
+                instruction = sub_str(line, positions[_else + 1], positions[_end - 1] + strlen(tokens[_end - 1]) - 1);
+                status_if = cmsh_instructions_process(instruction);
+            }
+
+            ptoken = etoken = _end + 1;
+            
+            if( tokens[_end + 1] == NULL ) {
+                status = status_if;
+                break;
+            }
+
+            if( strcmp(tokens[_end + 1], "if") != 0 && !is_concat_operator(tokens[_end + 1]) ) {
+                perror("cmsh: Bad command\n");
+                exit(EXIT_FAILURE);
+            }
+
+        } else {
+            while( tokens[etoken] != NULL && !is_concat_operator(tokens[etoken]) ) etoken ++;
+            instruction = sub_str(line, positions[ptoken], positions[etoken - 1] + strlen(tokens[etoken - 1]) - 1);
+            ptoken = etoken;
+
+            if( tokens[ptoken] == NULL ) {
+                status = cmsh_commands_process(instruction);
+                break;
+            }
+        }
+
         if( strcmp(tokens[ptoken], ";") == 0 ) {
-            int ss = cmsh_commands_process(instruction);
+            int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
             status = ( ss == EXIT_SUCCESS ) 
                     ? EXIT_SUCCESS
                     : ( status == EXIT_SUCCESS )
@@ -275,24 +305,122 @@ int cmsh_instructions_process(char* line) {
         }
         
         if( strcmp(tokens[ptoken], "||") == 0 ) {
-            int ss = cmsh_commands_process(instruction);
-            if( status == -1 ) status = ss;
-            if( status == EXIT_SUCCESS ) continue;
+            int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
             status = ss;
+            if( status == EXIT_SUCCESS ) {
+                // skip the next command 
+                ptoken ++;
+                while( tokens[ptoken] != NULL && ( !is_concat_operator(tokens[ptoken])
+                    || (is_concat_operator(tokens[ptoken]) && strcmp(tokens[ptoken], "||") == 0)) ) ptoken ++;
+                
+                if( tokens[ptoken] == NULL ) break;
+                continue; 
+            };
+
             continue;
         }
 
         if( strcmp(tokens[ptoken], "&&") == 0 ) {
-            int ss = cmsh_commands_process(instruction);
-            if( status == -1 ) status = ss;
-            if( status == EXIT_FAILURE ) continue;
+            int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
             status = ss;
+            if( status == EXIT_FAILURE ) {
+                // skip the next command 
+                ptoken ++;
+                while( tokens[ptoken] != NULL && ( !is_concat_operator(tokens[ptoken])
+                    || (is_concat_operator(tokens[ptoken]) && strcmp(tokens[ptoken], "&&") == 0)) ) ptoken ++;
+                
+                if( tokens[ptoken] == NULL ) break;
+                continue; 
+            }
+        } else {
+            perror("cmsh: Bad command\n");
+            break;
         }
     }
 
+    free(tokens); 
+    return status;
+}
+
+int cmsh_pre_process(char* line) {
+    // see if is an empty command 
+    line = delete_comment(line);
+    if( is_empty_command(line) ) return EXIT_SUCCESS;
+    line = remplace_command_again(line);
+    if( line == NULL ) return EXIT_FAILURE;
+
+    // get first token
+    int k = 0, r, n = strlen(line);
+    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
+    char* first_token = get_token(line, k);
+    // get second token
+    k += strlen(first_token);
+    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
+    char* second_token = get_token(line, k);
+
+     // see if i'll save the commnand
+    int save = contain(line[0], CMSH_TOK_DELIM) == 0
+        ? (strcmp(first_token, "history") == 0 && second_token == NULL) || strcmp(first_token, "exit") == 0
+        ? 1 : 2 : 0; 
+
+    char* original = malloc(strlen(line));
+    strcpy(original, line);
+
     // save in the history
-    if( save == 1 ) save_in_history(line); 
-    free(line); free(tokens); free(instruction);
+    if( save == 1 ) save_in_history(original);
+
+    int status = cmsh_instructions_process(line);
+
+    // save in the history
+    if( save == 2 ) save_in_history(original); 
+    
     free(original);
     return status;
+}
+
+int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_end) {
+    *_then = *_else = *_end = -1;
+    int k = _if;
+    int skip = 0;
+
+    if( tokens[_if] == NULL || strcmp(tokens[_if], "if") != 0 ) return -1;
+
+    k ++;
+    while(tokens[k] != NULL) {
+        if( strcmp(tokens[k], "then") == 0 && skip == 0 ) break;
+        if( strcmp(tokens[k], "if") == 0 ) skip ++;
+        if( strcmp(tokens[k], "end") == 0 ) skip --;
+        if( skip < 0 ) return -1;
+        k ++;
+    }
+    if( tokens[k] == NULL || skip != 0 ) return -1; // "then" isn't found
+    *_then = k ++;
+
+    while(tokens[k] != NULL) {
+        if( ( strcmp(tokens[k], "else") == 0 || strcmp(tokens[k], "end") == 0 ) && skip == 0 ) break;
+        if( strcmp(tokens[k], "if") == 0 ) skip ++;
+        if( strcmp(tokens[k], "end") == 0 ) skip --;
+        if( skip < 0 ) return -1;
+        k ++;
+    }
+
+    if( tokens[k] == NULL || skip != 0 ) return -1; // "else" and "end" aren't found
+    if( strcmp(tokens[k], "end") == 0 ) {
+        *_end = k;
+        return 1; 
+    }
+    *_else = k ++;
+
+    while(tokens[k] != NULL) {
+        if( strcmp(tokens[k], "end") == 0 && skip == 0 ) break;
+        if( strcmp(tokens[k], "if") == 0 ) skip ++;
+        if( strcmp(tokens[k], "end") == 0 ) skip --;
+        if( skip < 0 ) return -1;
+        k ++;
+    }
+
+    if( tokens[k] == NULL || skip != 0 ) return -1; // "end" isn't found
+    *_end = k;
+
+    return 1;
 }

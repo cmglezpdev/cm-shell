@@ -166,6 +166,7 @@ int max_sub(char **patts, char *line, int pos) {
 }
 
 char* get_token(char* line, int start) {
+    if( start >= strlen(line) ) return NULL;
     int end = start;
     for(; 
         end < strlen(line) && 

@@ -7,9 +7,13 @@
 
 int extract_command(char* line, char** tokens, int start, char** command);
 
+int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_end);
+
 int cmsh_commands_process(char *line);
 
 int cmsh_instructions_process(char* line);
+
+int cmsh_pre_process(char* line);
 
 int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]);
 

@@ -21,6 +21,8 @@ extern int (*builtin_func_out[3]) (char **);
 
 char* get_history_file_path();
 
+void cmsh_create_history_file();
+
 char** get_history();
 
 char* get_again(int number);

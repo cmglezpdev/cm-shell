@@ -34,19 +34,18 @@ void cmsh_loop( void ) {
     CMSH_HOME = malloc(strlen(pw -> pw_dir) * sizeof(char));
     strcpy(CMSH_HOME, pw -> pw_dir);
 
+    cmsh_init_vars();
+    cmsh_create_history_file();
+
     do {
         head_shell(pw -> pw_name);
         line = cmsh_read_line();
-        status = cmsh_instructions_process(line);
-    } while(1);
-    
-    free(line);
+        status = cmsh_pre_process(line);
+    } while(1);   
 }
 
 int main(int ac, char **argv) {
-
-    cmsh_init_vars();
-
+    
     cmsh_loop();
 
     return EXIT_SUCCESS;
