@@ -229,24 +229,13 @@ int cmsh_commands_process(char* line) {
 int cmsh_instructions_process(char* line) {
    // see if is an empty command 
     if( is_empty_command(line) ) return EXIT_SUCCESS;    
-    line = delete_comment(line);
 
     char* instruction = NULL;
     int status = -1;
 
-    line = remplace_command_again(line);
-    if( line == NULL ) return EXIT_FAILURE;
     int positions[CMSH_TOK_BUFF_SIZE];
     char **tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
     if( tokens == NULL ) return EXIT_FAILURE;
-
-    // // see if i'll save the commnand
-    // int save = line[0] != ' ' 
-    //     ? !strcmp(tokens[0], "history") && tokens[1] == NULL || !strcmp(tokens[0], "exit")
-    //     ? 2 : 1 : 0; 
-
-    // // save in the history
-    // if( save == 2 ) save_in_history(line);
 
     int ptoken = 0, pindex = 0;
     for(; tokens[ptoken] != NULL; ptoken ++) {
@@ -335,7 +324,6 @@ int cmsh_instructions_process(char* line) {
 
         if( strcmp(tokens[ptoken], "&&") == 0 ) {
             int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
-            // if( status == -1 ) status = ss;
             status = ss;
             if( status == EXIT_FAILURE ) {
                 // skip the next command 
@@ -346,18 +334,51 @@ int cmsh_instructions_process(char* line) {
                 if( tokens[ptoken] == NULL ) break;
                 continue; 
             }
-            // status = ss;
         } else {
             perror("cmsh: Bad command\n");
             break;
         }
     }
 
-    // save in the history
-    // if( save == 1 ) save_in_history(line); 
-
     free(tokens); 
-    // if(instruction != NULL) free(instruction);
+    return status;
+}
+
+int cmsh_pre_process(char* line) {
+    // see if is an empty command 
+    line = delete_comment(line);
+    if( is_empty_command(line) ) return EXIT_SUCCESS;
+    line = remplace_command_again(line);
+    if( line == NULL ) return EXIT_FAILURE;
+
+    // get first token
+    int k = 0, r, n = strlen(line);
+    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
+    char* first_token = get_token(line, k);
+    // get second token
+    k += strlen(first_token);
+    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
+    char* second_token = get_token(line, k);
+
+     // see if i'll save the commnand
+    int save = contain(line[0], CMSH_TOK_DELIM) == 0
+        ? (strcmp(first_token, "history") == 0 && second_token == NULL) || strcmp(first_token, "exit") == 0
+        ? 1 : 2 : 0; 
+
+    char* original = malloc(strlen(line));
+    strcpy(original, line);
+
+    printf("-----------------%s---------------\n", line);
+    // save in the history
+    if( save == 1 ) save_in_history(original);
+
+    int status = cmsh_instructions_process(line);
+
+    printf("-----------------%s---------------\n", line);
+    // save in the history
+    if( save == 2 ) save_in_history(original); 
+    
+    free(original);
     return status;
 }
 

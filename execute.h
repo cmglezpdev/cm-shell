@@ -13,6 +13,8 @@ int cmsh_commands_process(char *line);
 
 int cmsh_instructions_process(char* line);
 
+int cmsh_pre_process(char* line);
+
 int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]);
 
 int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]);
