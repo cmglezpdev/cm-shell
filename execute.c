@@ -318,10 +318,7 @@ int cmsh_instructions_process(char* line) {
         }
         
         if( strcmp(tokens[ptoken], "||") == 0 ) {
-            // printf("%d\n", status_if);
             int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
-            // printf("%d\n", ss);
-            // if( status == -1 ) status = ss;
             status = ss;
             if( status == EXIT_SUCCESS ) {
                 // skip the next command 
@@ -329,12 +326,10 @@ int cmsh_instructions_process(char* line) {
                 while( tokens[ptoken] != NULL && ( !is_concat_operator(tokens[ptoken])
                     || (is_concat_operator(tokens[ptoken]) && strcmp(tokens[ptoken], "||") == 0)) ) ptoken ++;
                 
-                // printf("ptoken %d\n", ptoken);
                 if( tokens[ptoken] == NULL ) break;
                 continue; 
             };
 
-            // status = ss;
             continue;
         }
 
@@ -373,8 +368,6 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
 
     if( tokens[_if] == NULL || strcmp(tokens[_if], "if") != 0 ) return -1;
 
-    // printf("Hola 1\n");
-
     k ++;
     while(tokens[k] != NULL) {
         if( strcmp(tokens[k], "then") == 0 && skip == 0 ) break;
@@ -386,8 +379,6 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
     if( tokens[k] == NULL || skip != 0 ) return -1; // "then" isn't found
     *_then = k ++;
 
-    // printf("Hola 2\n");
-
     while(tokens[k] != NULL) {
         if( ( strcmp(tokens[k], "else") == 0 || strcmp(tokens[k], "end") == 0 ) && skip == 0 ) break;
         if( strcmp(tokens[k], "if") == 0 ) skip ++;
@@ -397,13 +388,11 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
     }
 
     if( tokens[k] == NULL || skip != 0 ) return -1; // "else" and "end" aren't found
-        // printf("Hola 3\n");
     if( strcmp(tokens[k], "end") == 0 ) {
         *_end = k;
         return 1; 
     }
     *_else = k ++;
-    // printf("Hola 4\n");
 
     while(tokens[k] != NULL) {
         if( strcmp(tokens[k], "end") == 0 && skip == 0 ) break;
@@ -412,10 +401,9 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
         if( skip < 0 ) return -1;
         k ++;
     }
-        // printf("Hola 5\n");
+
     if( tokens[k] == NULL || skip != 0 ) return -1; // "end" isn't found
     *_end = k;
 
-    // printf("Hola 6\n");
     return 1;
 }
