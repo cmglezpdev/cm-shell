@@ -96,10 +96,10 @@ char** get_history() {
     char** commands = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char*));
     int fd = open(hpath, O_RDONLY | O_CREAT, 0600);
     char* doc = malloc(CMSH_TOK_BUFF_SIZE * sizeof(char));
-    read(fd, doc, CMSH_TOK_BUFF_SIZE);
+    size_t n = read(fd, doc, CMSH_TOK_BUFF_SIZE);
 
     char* line = NULL;
-    int s = 0, k = 0, n = strlen(doc);
+    int s = 0, k = 0;
 
     for(s = 0; s < n; s ++) {
         int e = s;
