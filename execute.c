@@ -321,17 +321,37 @@ int cmsh_instructions_process(char* line) {
             // printf("%d\n", status_if);
             int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
             // printf("%d\n", ss);
-            if( status == -1 ) status = ss;
-            if( status == EXIT_SUCCESS ) continue;
+            // if( status == -1 ) status = ss;
             status = ss;
+            if( status == EXIT_SUCCESS ) {
+                // skip the next command 
+                ptoken ++;
+                while( tokens[ptoken] != NULL && ( !is_concat_operator(tokens[ptoken])
+                    || (is_concat_operator(tokens[ptoken]) && strcmp(tokens[ptoken], "||") == 0)) ) ptoken ++;
+                
+                // printf("ptoken %d\n", ptoken);
+                if( tokens[ptoken] == NULL ) break;
+                continue; 
+            };
+
+            // status = ss;
             continue;
         }
 
         if( strcmp(tokens[ptoken], "&&") == 0 ) {
             int ss = status_if != -1 ? status_if : cmsh_commands_process(instruction);
-            if( status == -1 ) status = ss;
-            if( status == EXIT_FAILURE ) continue;
+            // if( status == -1 ) status = ss;
             status = ss;
+            if( status == EXIT_FAILURE ) {
+                // skip the next command 
+                ptoken ++;
+                while( tokens[ptoken] != NULL && ( !is_concat_operator(tokens[ptoken])
+                    || (is_concat_operator(tokens[ptoken]) && strcmp(tokens[ptoken], "&&") == 0)) ) ptoken ++;
+                
+                if( tokens[ptoken] == NULL ) break;
+                continue; 
+            }
+            // status = ss;
         } else {
             perror("cmsh: Bad command\n");
             break;
@@ -340,6 +360,7 @@ int cmsh_instructions_process(char* line) {
 
     // save in the history
     // if( save == 1 ) save_in_history(line); 
+
     free(tokens); 
     // if(instruction != NULL) free(instruction);
     return status;
