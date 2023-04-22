@@ -389,12 +389,13 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
     // printf("Hola 2\n");
 
     while(tokens[k] != NULL) {
-        if( strcmp(tokens[k], "else") == 0 || strcmp(tokens[k], "end") == 0 && skip == 0 ) break;
+        if( ( strcmp(tokens[k], "else") == 0 || strcmp(tokens[k], "end") == 0 ) && skip == 0 ) break;
         if( strcmp(tokens[k], "if") == 0 ) skip ++;
         if( strcmp(tokens[k], "end") == 0 ) skip --;
         if( skip < 0 ) return -1;
         k ++;
     }
+
     if( tokens[k] == NULL || skip != 0 ) return -1; // "else" and "end" aren't found
         // printf("Hola 3\n");
     if( strcmp(tokens[k], "end") == 0 ) {
