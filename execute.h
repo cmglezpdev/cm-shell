@@ -19,6 +19,8 @@ int cmsh_execute(char **args, int fd_in, int fd_out, int pipes[]);
 
 int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]);
 
+void signal_hander(int signum);
+
 #endif //PRACTIC_SHELL_EXECUTE_H
 
 

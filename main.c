@@ -5,6 +5,7 @@
 #include<sys/wait.h>
 #include<sys/types.h>
 #include<pwd.h>
+#include<signal.h>
 
 #include "execute.h"
 #include "parser.h"
@@ -39,6 +40,7 @@ void cmsh_loop( void ) {
 
     do {
         head_shell(pw -> pw_name);
+        signal(SIGINT, signal_hander);
         line = cmsh_read_line();
         status = cmsh_pre_process(line);
     } while(1);   

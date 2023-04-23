@@ -9,6 +9,7 @@
 #include<sys/types.h>
 #include<pwd.h>
 #include<fcntl.h>
+#include<signal.h>
 
 #include "execute.h"
 #include "builtin.h"
@@ -424,3 +425,7 @@ int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_e
 
     return 1;
 }
+
+void signal_hander(int signum) {
+    signal(SIGINT, SIG_DFL);
+} 
