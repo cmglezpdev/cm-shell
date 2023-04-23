@@ -10,6 +10,7 @@
 #include "execute.h"
 #include "parser.h"
 #include "builtin.h"
+#include "list.h"
 
 #define BOLD_CYAN "\033[1;36m"
 #define WHITE "\033[0m"
@@ -35,6 +36,7 @@ void cmsh_loop( void ) {
     CMSH_HOME = malloc(strlen(pw -> pw_dir) * sizeof(char));
     strcpy(CMSH_HOME, pw -> pw_dir);
 
+    background_pid = createList();
     cmsh_init_vars();
     cmsh_create_history_file();
 
