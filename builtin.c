@@ -11,6 +11,7 @@
 #include "parser.h"
 #include "builtin.h"
 #include "execute.h"
+#include "list.h"
 
 char* CMSH_HOME;
 char* vars[CMSH_SIZE_APHABET_VARIABLES];
@@ -22,13 +23,15 @@ char *builtin_str[] = {
     "set",
     "unset",
     "true",
-    "false"
+    "false",
+    "fg",
 };
 
 char *builtin_str_out[] = { 
     "help",
     "history",
-    "get"
+    "get",
+    "jobs",
 };
 
 int (*builtin_func[]) (char **) = {
@@ -37,13 +40,15 @@ int (*builtin_func[]) (char **) = {
     &cmsh_set,
     &cmsh_unset,
     &cmsh_true,
-    &cmsh_false
+    &cmsh_false,
+    &cmsh_foreground,
 };
 
 int (*builtin_func_out[]) (char **) = {
     &cmsh_help,
     &cmsh_history,
-    &cmsh_get
+    &cmsh_get,
+    &cmsh_jobs,
 };
 
 
@@ -317,4 +322,36 @@ int cmsh_true(char** args) {
 
 int cmsh_false(char** args) {
     return EXIT_FAILURE;
+}
+
+
+int cmsh_foreground(char** args) {
+    if( background_pid -> len == 0 ) {
+        perror("The process doesn't exist in the background\n");
+        return EXIT_FAILURE;
+    }
+
+    int status = 1;
+    int index_pid = args[1] == NULL ? background_pid -> len - 1 : (int) atoi(args[1]) - 1;
+
+    if( index_pid < 0 || index_pid >= background_pid -> len ) {
+        perror("The process doesn't exist in the background\n");
+        return EXIT_FAILURE;
+    }
+
+    pid_t pid = background_pid -> array[index_pid];
+    do {
+        waitpid(pid, &status, WUNTRACED);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+    removeAtIndex(background_pid, index_pid);
+    return status;
+}
+
+int cmsh_jobs(char **args) {
+    for (int i = 0; i < background_pid -> len; i++) {
+        printf("[%d]\t%d\n", i + 1, background_pid->array[i]);
+    }
+
+    return EXIT_SUCCESS;
 }

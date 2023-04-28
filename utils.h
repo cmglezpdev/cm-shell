@@ -25,7 +25,7 @@ char* cmsh_read_file( char* file );
 
 int cmsh_write_file(char* file, char* content, int trunc);
 
-extern char *operators[4];
+extern char *operators[5];
 
 int is_operator(char* token);
 
