@@ -15,6 +15,9 @@
 #include "builtin.h"
 #include "utils.h"
 #include "parser.h"
+#include "list.h"
+
+struct List *background_pid;
 
 int cmsh_launch(char **args, int fd_input, int fd_output, int pipes[]) {
     pid_t pid, wpid;
@@ -349,33 +352,48 @@ int cmsh_pre_process(char* line) {
     if( is_empty_command(line) ) return EXIT_SUCCESS;
     line = remplace_command_again(line);
     if( line == NULL ) return EXIT_FAILURE;
-
-    // get first token
-    int k = 0, r, n = strlen(line);
-    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
-    char* first_token = get_token(line, k);
-    // get second token
-    k += strlen(first_token);
-    while(k < n && contain(line[k], CMSH_TOK_DELIM)) k++;
-    char* second_token = get_token(line, k);
-
-     // see if i'll save the commnand
-    int save = contain(line[0], CMSH_TOK_DELIM) == 0
-        ? (strcmp(first_token, "history") == 0 && second_token == NULL) || strcmp(first_token, "exit") == 0
-        ? 1 : 2 : 0; 
-
+    int positions[CMSH_TOK_BUFF_SIZE];
+    char** tokens = cmsh_split_line(line, CMSH_TOK_DELIM, positions);
     char* original = malloc(strlen(line));
     strcpy(original, line);
+    int status;
+
+    // see if i'll save the commnand
+    int save = contain(line[0], CMSH_TOK_DELIM) == 0
+        ? (strcmp(tokens[0], "history") == 0 && tokens[1] == NULL) || strcmp(tokens[0], "exit") == 0
+        ? 1 : 2 : 0; 
 
     // save in the history
     if( save == 1 ) save_in_history(original);
 
-    int status = cmsh_instructions_process(line);
+    // search a & operator
+    int ampersand = -1;
+    for(
+        int i = 0; 
+        tokens[i] != NULL; 
+        ampersand = strcmp(tokens[i], "&") == 0 ? i : ampersand, i ++ 
+    );
+
+    if( ampersand != -1 && tokens[ampersand + 1] == NULL ) {
+        // execute in the background
+        line = sub_str(line, 0, positions[ampersand] - 1);
+        pid_t pid = fork();
+        if( pid == 0 ) {
+            setpgid(0, 0);
+            exit(status = cmsh_instructions_process(line));
+        } else if(pid > 0) {
+            setpgid(pid, pid);
+            append(background_pid, pid);
+            printf("[%d]\t%d\n", background_pid->len, pid);
+        }
+    } else {
+        status = cmsh_instructions_process(line);
+    }
 
     // save in the history
     if( save == 2 ) save_in_history(original); 
     
-    free(original);
+    free(original); free(tokens);
     return status;
 }
 

@@ -112,7 +112,7 @@ int is_number(char* line) {
     return 1;
 }
 
-char* operators[] = {">", "<", ">>", "|"};
+char* operators[] = {">", "<", ">>", "|", "&"};
 
 int is_operator(char* token) {
     for(int i = 0; i < 4; i ++) {

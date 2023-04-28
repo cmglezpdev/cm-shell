@@ -5,6 +5,8 @@
 #ifndef PRACTIC_SHELL_EXECUTE_H
 #define PRACTIC_SHELL_EXECUTE_H
 
+extern struct List *background_pid;
+
 int extract_command(char* line, char** tokens, int start, char** command);
 
 int get_if_then_else_end(char** tokens, int _if, int *_then, int *_else, int *_end);
