@@ -1,11 +1,15 @@
+basic:
 Funcionalidades básicas de la simulación de la shell:
 
-1- Al ejecutarse el programa siempre imprime un prompt
-2- Ejecuta los comandos e imprime la salida de estos
-3- El comando cd <path> permite cambiar de directorio, hacia el directorio especificado <path>
+Al ejecutarse el programa siempre imprime un prompt.
+Ejecuta los comandos de linux imprime la salida de estos.
+El comando cd <path> permite cambiar de directorio, hacia el directorio especificado <path>, si no recibe una entrada <path>, lanza una excepción.
+ejemplo: cmsh@fulano:<path>$
+         cmsh@fulano:/home/newfolder$
+implementación: 
 
-Ejemplo:
-cmsh@fulano:<path>$
-cmsh@fulano:/home/newfolder$
-
-4- 
+Redirige la entrada y la salida de comandos hacia ficheros con < > >>.
+Se ignoran todos los caracteres desde el carácter #, hasta el final de la línea.
+Usando una tuberia | se redirigen las salidas de un comando hacia la entrada de otro.
+ejemplo: cmsh@fulano:<path>$ comando 1 | comando 2
+implementación: 
