@@ -13,3 +13,6 @@ Se ignoran todos los caracteres desde el carácter #, hasta el final de la líne
 Usando una tuberia | se redirigen las salidas de un comando hacia la entrada de otro.
 ejemplo: cmsh@fulano:<path>$ comando 1 | comando 2
 implementación: 
+
+El comado exit, cierra el shell.
+implementación:
