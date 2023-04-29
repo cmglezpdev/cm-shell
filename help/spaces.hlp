@@ -1,0 +1,4 @@
+permite cualquier cantidad de espacios entre los camandos y los parametros.
+ejemplo: cmsh@fulano:<path>$ comando1      | comando2
+         cmsh@fulano:<path>$     comando1             |             comando2 | comando3
+implementación: 
