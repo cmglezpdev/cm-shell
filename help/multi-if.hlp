@@ -1,0 +1,2 @@
+se pueden anidar if dentro de otros if y cada uno debe poseer su propio end 
+ejemplo: cmsh@fulano:<path>$ if comando1 then if comando2 then comando4 else comando5 end else comando3 end
