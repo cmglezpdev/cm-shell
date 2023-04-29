@@ -1,0 +1,12 @@
+al usar el operador ; en una línea, se pueden ejecutar varios comandos en esa línea.
+ejemplo: cmsh@fulano:<path>$ comando1; comando2; comando3
+         se ejecuta cada comando e orden e imprimen sus respectivas salidas.
+el operador && funciona como un AND lógico, el segundo comando solo se ejecuta si el primero di un resultado satisfactorio
+ejemplo: cmsh@fulano:<path>$ comando1 && comando2
+implementación:
+
+el operador || funciona como un OR lógico, el segundo comando solo se ejecuta si falla el primero.
+ejemplo: cmsh@fulano:<path>$ comando1 || comando2
+implementación: 
+
+los comandos 'true' y 'false' solo retornan exit_status 1 y 0 respectivamente.
