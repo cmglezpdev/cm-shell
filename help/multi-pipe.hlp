@@ -8,3 +8,5 @@ tambien se pueden usar las pipes en unión con las redirecciones hacia ficheros(
 
 ejemplo: cmsh@fulano:<path>$ comando 1 | comando 2 | comando 3
          cmsh@fulano:<path>$ comando 1 < file 1 | comando 2 | comando 3 | comando 4 > file 2
+        
+implementación: 
