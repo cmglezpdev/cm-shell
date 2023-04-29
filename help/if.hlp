@@ -1,0 +1,9 @@
+al usar el operador if debe aparecer un operador then, y un comando o una cadena de comandos entre ellos,
+si estos tienen un valor de retorno igual a 0, se ejecuta el comando despues del then.
+ejemplo: cmsh@fulano:<path>$ if comando1; comando2 then comando3 end 
+implementación:
+
+ademas puede usarse el operador else de manera opcional entre el último comando y el end, de forma tal que si el valor
+de retorno de los comandos antes del then es distinto de 0, se ejecutan los comandos que esten despues del esle.
+ejemplo: cmsh@fulano:<path>$ if comando1 then comando2 else comando3 end
+implementación: 
