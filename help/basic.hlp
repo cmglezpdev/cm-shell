@@ -10,7 +10,7 @@ implementación:
 
 Redirige la entrada y la salida de comandos hacia ficheros con < > >>.
 Se ignoran todos los caracteres desde el carácter #, hasta el final de la línea.
-Usando una tuberia | se redirigen las salidas de un comando hacia la entrada de otro.
+Usando una pipe | se redirigen las salidas de un comando hacia la entrada de otro.
 ejemplo: cmsh@fulano:<path>$ comando 1 | comando 2
 implementación: 
 
