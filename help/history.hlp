@@ -1,0 +1,25 @@
+imprime la lista de los últimos diez comandos ejecutados, en orden de ejecución, mostrando al lado del comando un número que representa el orden en que fue ejecutado.
+ejemplo: cmsh@fulano:<path>$ history
+        1: ls 
+        2: comando1 
+        3: ls 
+        4: ls 
+        5: ls 
+        6: ls 
+        7: ls 
+        8: history 
+        9: ls 
+        10: cd<path>
+el comando again<number> ejecuta el comando listado en la posicón number, y guarda en el history el comando ejecitado(no guarda again).
+ejemplo: cmsh@fulano:<path>$ again 8
+        1: comando1 
+        2: ls 
+        3: ls 
+        4: ls 
+        5: ls 
+        6: ls 
+        7: history 
+        8: ls 
+        9: cd<path>
+        10: history
+implementación: 

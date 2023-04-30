@@ -1,0 +1,25 @@
+utilizando el comando set var <value> se pueden declarar variables a las cuales se pueden acceder en cualquier momento
+durante la ejecución del shell, luego de set debe ir el nombre de la variable seguido del valor, si se utiliza set sin 
+parámetros se muestran todas las variables y su valor.
+con el comando get var se muestra el valor de la variable 'var'.
+con el comando unset var se elimina la variable var.
+ejemplo:cmsh@jorgito:<path> set a 5
+        cmsh@jorgito:<path> set b sello
+        cmsh@jorgito:<path> set c 1000
+        cmsh@jorgito:<path> set
+        a = 5
+        b = sello
+        c = 1000
+        cmsh@jorgito:<path> get c
+        1000
+        cmsh@jorgito:<path> unset a
+        cmsh@jorgito:<path> set
+        b = sello
+        c = 1000
+implementación: 
+
+el valor de una variable pueden ser comandos dentro de comillas invertidas ``, de forma tal que el valor de ese comando
+se guarda en la variable, dentro de las comillas puede haber cualquier funcionalidad del shell.
+ejemplo: cmsh@jorgito:<path> set a `ls`
+         cmsh@jorgito:<path> get a 
+         cmsh@jorgito:<path> file  file2 dir1 dir2 

@@ -1,0 +1,4 @@
+al utilizar el comando ctrl+c se manda una señal SIGINT, y el proceso en ejecución decide si 
+ignorarlo o detenerse, al ejecutar por segunda vez ctrl+c sobre el mismo proceso se manda la 
+señal SIGKILL que mata el proceso.
+implementación: 

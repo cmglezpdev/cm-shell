@@ -1,0 +1,11 @@
+el operador & hace que hace que el proceso padre no espere por la terminación del proceso hijo que tenga al final el operador en cuestión.
+ejemplo: cmsh@fulano:<path>$ comando 1 $
+
+el comando jobs muestra una lista de todos los procesos que se estan corriendo en el background
+ejemplo: cmsh@fulano:<path>$ jobs
+         [1] comando 1
+         [2] comando 2
+implementación:
+
+el comando fg<pid> envía hacia el foreground el proceso <pid>, si se ejeuta fg sin parametros entonces envía hacia el foreground el último proceso que fue al background.
+implementación: 

@@ -1,0 +1,12 @@
+permite utilizar multiples pipes a la hora de ejecutar comandos, 
+se puede redirigir la entrada del primer comando hacia el segundo y asi sucesivamente.
+durante la ejecución del multi-pipe aparecen 3 estados posibles, 
+-estar en el primer comando, donde solo se conecta la salida del comando con el write_end del pipe
+-estar en un comando interior donde se conecta la entrada del comando con el read_end del anterior pipe y la salida con el write_end del siguiente pipe.
+-estar en el último comando donde solo se conecta la entrada del comando con el read_end del último pipe
+tambien se pueden usar las pipes en unión con las redirecciones hacia ficheros(< > >>) .
+
+ejemplo: cmsh@fulano:<path>$ comando 1 | comando 2 | comando 3
+         cmsh@fulano:<path>$ comando 1 < file 1 | comando 2 | comando 3 | comando 4 > file 2
+        
+implementación: 
