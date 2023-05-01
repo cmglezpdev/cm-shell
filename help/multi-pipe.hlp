@@ -1,0 +1,10 @@
+
+Permite utilizar multiples pipes a la hora de ejecutar comandos, se puede redirigir la salida del primer comando hacia la entrada del segundo y asi sucesivamente.
+
+---------------------------------------------------
+cmsh@fulano:/home$ comando1 | comando2 | comando3
+cmsh@fulano:/home$ comando1 < file1 | comando2 | comando3 | comando4 >> file2
+---------------------------------------------------
+        
+Implementación: Igual que su implementación básica, se usa la función pipes(fd) y dup2() para ir cambiando la salida del comando anterior y la entrada del siguente.
+Esto tambien funciona para poner un fichero como entrada/salida del comando. 

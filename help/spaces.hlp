@@ -1,0 +1,18 @@
+Permite cualquier cantidad de espacios entre los comandos y los parametros.
+
+-----------------------------------
+cmsh@fulano:<path>$ comando1      && comando2
+cmsh@fulano:<path>$     comando1             |             comando2 | comando3&
+-----------------------------------
+
+Implementación: Tomamos el string de entrada y extraímos los tokens(comando, agrumentos y operadores) "a mano".
+Simplemente ignorábamos todos los carácteres que eran espacios en blanco y cuando encontramos uno diferente, tomamos de ahi en ademante como otro token hasta que encontrara otro espacio en blanco o un operador.
+Creé funciones auxiliares que dado una cadena te dicen si es un operador o no. 
+
+Luego toda esa cadena con diferentes cantidad de espacios la transformo en una cadena que solo tenga un espacio entre los tokens.
+Por ejemplo, los comandos anteriores se transformarian en:
+
+-----------------------------------
+cmsh@fulano:<path>$ comando1 && comando2
+cmsh@fulano:<path>$ comando1 | comando2 | comando3 &
+-----------------------------------

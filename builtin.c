@@ -68,15 +68,26 @@ int cmsh_cd(char **args) {
 
 int cmsh_help(char **args)
 {
-    printf("Carlos Manuel Gonzalez's CMSH\n");
-    printf("Type program names and arguments, and hit enter.\n");
-    printf("The following are built in:\n");
+    char* file = malloc(CMSH_TOK_BUFF_SIZE);
+    strcpy(file, "./help/");
 
-    for (int i = 0; i < cmsh_num_builtins(); i++) {
-        printf("  %s\n", builtin_str[i]);
+    if( args[1] == NULL ) {
+        strcat(file, "help.hlp");
+    } else {
+        strcat(file, args[1]);
+        strcat(file, ".hlp");
+    }
+ 
+    int fd = open(file, O_RDONLY);
+    if( fd == -1 ) {
+        perror("cmsh: Comand doesn't exists\n");
+        return EXIT_FAILURE;
     }
 
-    printf("Use the man command for information on other programs.\n");
+    char* buffer = malloc(5 * CMSH_TOK_BUFF_SIZE);
+    read(fd, buffer, 5 * CMSH_TOK_BUFF_SIZE);
+    printf("%s\n", buffer);
+
     return EXIT_SUCCESS;
 }
 

@@ -1,0 +1,32 @@
+Carlos Manuel González Peña
+Jorge Alberto Aspiolea González
+
+Funcionalidades:
+basic: funciones básicas de la shell (3 puntos)
+multi-pipe: implementación de más de una tuberia (1 punto)
+background: poder ejecutar comandos en segundo plano (0.5 puntos)
+spaces: permitir cualquier cantidade de espacios entre comandos y operadores (0.5 puntos)
+history: guardar los últimos comandos ejecutados (0.5 puntos)
+ctrl+c: terminar con el proceso que este ejecutandose (0.5 puntos)
+chain: posibilidad de encadenar varios comandos en una sola línea (0.5 puntos)
+if: posibilidad de ejecutar comandos usando expresiones condicionales (1 punto)
+multi-if: permite múltiples expresiones condicionales en una sola línea (0.5 puntos)
+help: permite mostrar una ayuda de las funcionalidades y los comandos del shell (1punto)
+variables: posibilidad de almacenar variables (1 punto)
+
+Comandos built-in:
+cd: cambiar de directorio
+exit: termina la ejecución del shell
+jobs: lista los procesos ejecutandose en el background
+fg <pid>: envia el proceso <pid> hacia el foreground
+history: enseña el historial de comandos
+again <number>: ejecuta el comando <number> de la historia
+true: retorna (exit status) cero
+false: retorna (exit status) uno
+if: ejecuta un comandos si se cumple o no una condición
+help: muestra el help
+set: permite modificar el valor de las variables
+get: permite mostrar el valor de las variables
+unset: permite eliminar una variable
+
+Total: 10 puntos

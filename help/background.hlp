@@ -1,0 +1,41 @@
+========= & ===========
+
+El operador & hace que el proceso padre no espere por la terminación del proceso hijo y lo mantenga ejecutándose en segundo plano.
+-------------------------------
+cmsh@fulano:<path>$ wget link &
+-------------------------------
+Este comando descarga lo que halla en el link, pero en vez de esperar a que termine la descarga para darle acceso nuevamente a la shell, lo que hace el operador & es mantener la descarga en segundo plano y asi poder hacer otras cosas mientras la descarga continua.
+
+Implementación: Cuando se crea un fork() para ejecutar el proceso siempre desde el padre se espera mediante la función waitpid(pid, stautus, flag) que el comando hijo termine para seguir con el comando padre.
+Entonces, para dejar el proceso en el background no se usa este waitpid, manteniendo la ejecución del comando en paralelo mientras continua el proceso padre.
+También se guarda el pid del comando en una lista.
+
+Nota: A mi background se manda toooda la cadena de comandos y falla si hay algun operador & en el medio de la cadena.
+
+--------------------
+cmsh@fulano:<path>$ command1 & || command2      # este comando falla
+cmsh@fulano:<path>$ command1 || command2 &      # este comando pasa toda la entrada al backgroud, no solo command2
+--------------------
+
+
+======= jobs ==========
+
+El comando jobs muestra una lista de todos los procesos que se estan corriendo en el background con su correspondiente id(pid).
+
+-----------------------------
+cmsh@fulano:<path>$ jobs
+# lista de los comandos
+[1] comando1 <pid>
+[2] comando2 <pid>
+# prompt
+cmsh@fulano:<path>$
+---------------------------
+
+
+======= fg =============
+
+El comando fg <pid> envía hacia el foreground el proceso <pid>, si se ejeuta fg sin parametros entonces envía hacia el foreground el último proceso que fue al background.
+Implementación: Para esto simplenente tomamos su pid y mediante la función waitpid esperamos a que el proceso termine(Esto bloquea la shell nuevamente hasta que el proceso termina). 
+
+
+NOTA: Aquí me confundí y en vez de usar el pid como argumento del comando, lo que uso es el índice del mismo en la lista de los procesos.
