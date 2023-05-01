@@ -24,7 +24,7 @@ Se ejecuta "command1 && command2" y si triunfa se ejecuta "if command3 then comm
 Por el contrario si falla entonces se verifica el if después del else.
 
 
-Implementación: Usando el mismo método para entontrar dado el if su correspondiente then, else y end se utiliza aqui también.
+Implementación: Usando el mismo método para encontrar dado el if su correspondiente then, else y end se utiliza aqui también.
 Para esto lo que hacemos es si, buscando el else/end encontramos otro if entonces el próximo end que nos encontremos tenemos que omitirlo ya que es el correspondiente al segundo if(ya que está anidado).
 Por tanto si nos encontramos k if tenemos que omitir los k end siguentes que son los correspondientes a estos if, y por tanto el próximo else/end sería el que buscamos.
-Después de obtener el grupo de comandos entre el then y el else/end, como este puede tener a su vez otros if entonces lo ejecutamos recursivamente.
+Después de obtener el grupo de comandos entre el then y el else/end, como este puede tener a su vez otros if lo ejecutamos recursivamente.

@@ -10,10 +10,9 @@ Implementación: Se usó el comando chdir() de C.
 
 Ejemplo:    
 ---------------------------------
-cmsh@fulano:/home/$ cd newfolder # moverte a la carpeta newfolder
+cmsh@fulano:/home$ cd newfolder # moverte a la carpeta newfolder
 cmsh@fulano:/home/newfolder$
 ---------------------------------
-
 
 
 
@@ -21,24 +20,25 @@ cmsh@fulano:/home/newfolder$
 Estos operadores redireccionan la salida de un comando.
 
 -------------------------------
-cmsh@fulano:/home/$  command1 | command2
+cmsh@fulano:/home$  command1 | command2
 -------------------------------
 Explicación: El comando | redirecciona la salida de command1 hacia la entrada de command2.
-Implementación: Usando la función pipes(fd) de C y haciendo que en fd[1] se escriba la salida del commando anterior y que fd[0] sea la entrada del comando siguiente.(esto se hace mediante la función dup2())
+Implementación: Usando la función pipe(fd) de C y haciendo que en fd[1] se escriba la salida del comando anterior y que fd[0] sea la entrada del comando siguiente.(esto se hace mediante la función dup2())
 
 -------------------------------
-cmsh@fulano:/home/$  command < file
-cmsh@fulano:/home/$  command > file
-cmsh@fulano:/home/$  command >> file
+cmsh@fulano:/home$  command < file
+cmsh@fulano:/home$  command > file
+cmsh@fulano:/home$  command >> file
 -------------------------------
+
 Explicación: El comando < toma lo que está escrito en file y lo pasa como entrada al command. El comando > y >> toman la salida de command y lo escriben en el fichero file. La diferencia entre > y >> es que el primero sobrescribe el fichero y el segundo lo añade al final del documento.
 Implementación: Usando la función dup2() se intercambia la entrada/salida standard del comando por el fichero. Para hacer la diferencia entre > y >> es mediante el flag O_APPEND cuando se abre el fichero. 
 
 -------------------------------
-cmsh@fulano:/home/$  command1 < file1 | command2 > file2
+cmsh@fulano:/home$ command1 < file1 | command2 > file2
 -------------------------------
-Explicación: Esto es un comando en el que combinan. Se toma el contenido de file1 como entrada de command1, se ejecuta y se pasa la salida como entrada de command2 y este al ejecutarse escribe en el ficher su salida en el archivo file.
-
+Explicación: Esto es un comando en el que combinan los operadores. 
+Se toma el contenido de file1 como entrada de command1, se ejecuta y se pasa la salida como entrada de command2 y este al ejecutarse escribe en el ficher su salida en el archivo file2.
 
 
 ====== exit =======
