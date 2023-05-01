@@ -12,7 +12,13 @@ El proyecto se encuentra desarrollado en C, por lo que tienes que tener C instal
 Solo debe ejecutar el siguente comando
 
 ```bash
-make 
+make
+```
+
+o si no te funciona puedes poner el comando directamente
+
+```bash
+gcc main.c builtin.c parser.c execute.c utils.c list.c -o shell && ./shell
 ```
 
 ## Funcionalidades:
