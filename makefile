@@ -1,2 +1,2 @@
 dev:
-	gcc main.c builtin.c parser.c execute.c utils.c list.c -o shell && ./shell
+	gcc ./src/main.c ./src/builtin.c ./src/parser.c ./src/execute.c ./src/utils.c ./src/list.c -o shell && ./shell
