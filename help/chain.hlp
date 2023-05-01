@@ -1,13 +1,33 @@
-al usar el operador ';' en una línea, se pueden ejecutar varios comandos en esa línea.
-ejemplo: cmsh@fulano:<path>$ comando1; comando2; comando3
-         se ejecuta cada comando e orden e imprimen sus respectivas salidas.
-en caso de aparecer una tuberia primero se ejecuta todo el comando que está antes del ';' con todas sus tuberias.
-el operador '&&' funciona como un AND lógico, el segundo comando solo se ejecuta si el primero di un resultado satisfactorio
-ejemplo: cmsh@fulano:<path>$ comando1 && comando2
-implementación:
+======== ; ==========
+Explicación: Al usar el operador ';' en una línea, se pueden ejecutar varios comandos en esa línea sin importar el status del comando previo. El status del commando es 0 si triunfa al menos un comando, en otro caso es 1(falla).
+--------------------------------------
+cmsh@fulano:<path>$ command1 ; command2 ; command3
+--------------------------------------
+Se ejecuta cada comando en orden e imprimen sus respectivas salidas.
 
-el operador '||' funciona como un OR lógico, el segundo comando solo se ejecuta si falla el primero.
-ejemplo: cmsh@fulano:<path>$ comando1 || comando2
-implementación: 
 
-los comandos 'true' y 'false' solo retornan exit_status 1 y 0 respectivamente.
+======== && ==========
+Explicación: El comando && funciona como el AND lógico para ejecutar comandos.
+--------------------------------------
+cmsh@fulano:<path>$ command1 && command2 && command3
+--------------------------------------
+Se ejecuta el command1 y solo si este no falla se ejecuta el command2, y si este no falla entonces se ejecuta el command3. Si un comando falla entonces no se ejecutan los restantes comandos. El status del comando es 0 si triunfa todos los commandos involucrados en el &&, en otro caso es 1(falla).
+
+
+======== || ==========
+Explicación: El comando && funciona como el OR lógico para ejecutar comandos.
+--------------------------------------
+cmsh@fulano:<path>$ command1 || command2 || command3
+--------------------------------------
+Se ejecuta el command1 y solo si este falla se ejecuta el command2, y si este falla entonces se ejecuta el command3. Si un comando triunfa entonces no se ejecutan los restantes comandos. El status del comando es 0 si triunfa al menos un comando de los involucrados en el ||, en otro caso es 1(falla).
+
+
+======= true ===== false ========
+Los comandos 'true' y 'false' solo retornan status 1 y 0 respectivamente.
+
+
+También se puden usar de forma combinada
+-------------------------------------
+cmsh@fulano:<path>$ command1 ; command2 || command3 && command3
+-------------------------------------
+En este caso se ejecuta command1 y sin importar si triunda o fracasa se ejecuta command2. Si este fracasa entonces se ejecuta command3 y en caso de que triunfe se ignoran todos los siguientes comandos que esten involucrados con el operador || (lo mismo pasa para el operador &&). Luego si command2 o command3 triunfa entonces se ejecuta command3.

@@ -1,25 +1,38 @@
-utilizando el comando set var <value> se pueden declarar variables a las cuales se pueden acceder en cualquier momento
-durante la ejecución del shell, luego de set debe ir el nombre de la variable seguido del valor, si se utiliza set sin 
-parámetros se muestran todas las variables y su valor.
-con el comando get var se muestra el valor de la variable 'var'.
-con el comando unset var se elimina la variable var.
-ejemplo:cmsh@jorgito:<path> set a 5
-        cmsh@jorgito:<path> set b sello
-        cmsh@jorgito:<path> set c 1000
-        cmsh@jorgito:<path> set
-        a = 5
-        b = sello
-        c = 1000
-        cmsh@jorgito:<path> get c
-        1000
-        cmsh@jorgito:<path> unset a
-        cmsh@jorgito:<path> set
-        b = sello
-        c = 1000
-implementación: 
+======== set ========
+Utilizando el comando set var <value> se pueden declarar variables a las cuales se pueden acceder en cualquier momento durante la ejecución del shell, luego de set debe ir el nombre de la variable seguido del valor, si se utiliza set sin parámetros se muestran todas las variables y su valor.
+El valor de una variable pueden ser comandos dentro de comillas invertidas ``, de forma tal que la salida de ese comando se guarda en la variable, dentro de las comillas puede haber cualquier funcionalidad del shell.
 
-el valor de una variable pueden ser comandos dentro de comillas invertidas ``, de forma tal que el valor de ese comando
-se guarda en la variable, dentro de las comillas puede haber cualquier funcionalidad del shell.
-ejemplo: cmsh@jorgito:<path> set a `ls`
-         cmsh@jorgito:<path> get a 
-         cmsh@jorgito:<path> file  file2 dir1 dir2 
+------------------------------------------
+cmsh@jorgito:<path> set a `ls`
+cmsh@jorgito:<path> get a 
+cmsh@jorgito:<path> file  file2 dir1 dir2 
+------------------------------------------
+
+======== get ========
+Con el comando get var se muestra el valor de la variable 'var'.
+
+
+======== unset ========
+Con el comando unset var se elimina la variable var.
+
+
+Ejemplo:
+----------------------------------------------
+cmsh@jorgito:<path> set a 5
+cmsh@jorgito:<path> set b sello
+cmsh@jorgito:<path> set c 1000
+cmsh@jorgito:<path> set
+a = 5
+b = sello
+c = 1000
+cmsh@jorgito:<path> get c
+1000
+cmsh@jorgito:<path> unset a
+cmsh@jorgito:<path> set
+b = sello
+c = 1000
+----------------------------------------------
+
+Implementación: Para esto se usa un array de tamaño fijo el cual cada índice corresponde a una letra del alfabeto inglés.
+Al hacer un set lo que hacemos es guardar en la posición correspondiente el valor introducido, y con el comando unset simplemente volvemos esa posición a null nuevamente
+Para los comandos entre `command` lo que hago es ejecutar el comando en un proceso hijo y guardar la salida en un fichero temporal creado por la función pipe() y luego leo de ahí la salida del comando y la guardo como valor de la variable. 

@@ -1,25 +1,46 @@
-imprime la lista de los últimos diez comandos ejecutados, en orden de ejecución, mostrando al lado del comando un número que representa el orden en que fue ejecutado.
-ejemplo: cmsh@fulano:<path>$ history
-        1: ls 
-        2: comando1 
-        3: ls 
-        4: ls 
-        5: ls 
-        6: ls 
-        7: ls 
-        8: history 
-        9: ls 
-        10: cd<path>
-el comando again<number> ejecuta el comando listado en la posicón number, y guarda en el history el comando ejecitado(no guarda again).
-ejemplo: cmsh@fulano:<path>$ again 8
-        1: comando1 
-        2: ls 
-        3: ls 
-        4: ls 
-        5: ls 
-        6: ls 
-        7: history 
-        8: ls 
-        9: cd<path>
-        10: history
-implementación: 
+======== history ===========
+
+Imprime la lista de los últimos diez comandos ejecutados, en orden de ejecución, mostrando al lado del comando un número que representa el orden en que fue ejecutado.
+
+----------------------------------
+cmsh@fulano:<path>$ history
+
+1: ls 
+2: comando1 
+3: ls 
+4: ls 
+5: ls 
+6: ls 
+7: ls 
+8: history 
+9: ls 
+10: cd<path>
+---------------------------------
+
+Implementación: Creé un fichero .cmsh_history(se crea automático si no existe) y en el se guarda el historial de los commandos(sin los comentarios y con un solo espacio entre tokens).
+El método se ejecuta después de la ejecución de la entrada o antes de ejecutarse si el comando introducido es "history" o "exit". Esto para que antes de mostrar el historial se pueda ver correctamente el número de cada uno y porque exit termina la ejecución de la shell, por lo que nunca se guardaría.
+También se sustituye el comando again <number> por su correspondiente comando en el historial antes de guardarlo.
+
+======== again ============
+
+El comando again <number> ejecuta el comando listado en la posición number dentro del historial, y guarda en el history el comando ejecutado(no guarda again).
+
+=============================
+cmsh@fulano:<path>$ history
+1: comando1 
+2: ls 
+3: ls -la
+4: history
+cmsh@fulano:<path>$ again 2
+folder1 folder2 file1 file2
+
+cmsh@fulano:<path>$ history
+1: comando1 
+2: ls 
+3: ls -la
+4: history
+5: ls
+6: history
+=============================
+
+Implementación: Simplemente se lee el fichero que guarda el historial, y como cada comando corresponde a una linea del fichero, entonces el comando i-esimo es el de la linea i-esima. 

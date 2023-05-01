@@ -1,9 +1,15 @@
-al usar el operador if debe aparecer un operador then, y un comando o una cadena de comandos entre ellos,
-si estos tienen un valor de retorno igual a 0, se ejecuta el comando despues del then.
-ejemplo: cmsh@fulano:<path>$ if comando1; comando2 then comando3 end 
-implementación:
+Al usar condicionales deben aparecer las palabras if, then y end obligatoriamente y opcional un else entre then y end.
 
-ademas puede usarse el operador else de manera opcional entre el último comando y el end, de forma tal que si el valor
-de retorno de los comandos antes del then es distinto de 0, se ejecutan los comandos que esten despues del esle.
-ejemplo: cmsh@fulano:<path>$ if comando1 then comando2 else comando3 end
-implementación: 
+Entre el if y el then hay un comando que si triunfa entonces se ejecuta el comando que está después del then. Si por el contrario falla y existe el else, entonces se ejecuta el comando despues del else.
+Se muestran las salidas de todos los comandos que son ejecutados.
+
+-----------------------------------------
+cmsh@fulano:<path>$ if command1 || command2 then command3 && command4 else command5 end 
+-----------------------------------------
+
+En el ejemplo primero se ejecuta "command1 || command2" y si este triunfa entonces se ejecuta "command3 && command4". Si por el contrario este falla entonces omite el comando despues del then y ejecuta el else que es el comando "command5".
+
+
+Implementación: Si en la linea de entrada me encuentro un if, entonces mediante el mi método get_if_then_else_end(&if, &then, &else, &end) obtengo la posición del if, then, else y end correspondientes a ese if y las guardo en las correspondientes variables. Si no existe alguno de ellos entonces se guarda un -1.
+Si no exite el then o el end entonces el metodo retorna un -1 que indica un error.
+Luego tomamos el grupo de comandos que estan entre el if y el then, los que están entre then y else o entre then y end(si else no existe), y tomamos el grupo entre else y end(si else existe) y procedemos con ellos como explicamos anteriormente.
